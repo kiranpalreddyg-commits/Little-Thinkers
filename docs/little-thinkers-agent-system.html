@@ -1,0 +1,1287 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Little Thinkers — Multi-Agent AI System</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=DM+Mono:ital,wght@0,300;0,400;0,500;1,300&family=Syne:wght@400;600;700;800&display=swap');
+
+  :root {
+    --bg: #0B0B14;
+    --surface: #13131F;
+    --surface2: #1A1A2E;
+    --border: rgba(255,255,255,0.07);
+    --border-bright: rgba(255,255,255,0.15);
+
+    /* Agent colours */
+    --orch:   #F97794; /* Orchestrator - coral */
+    --content: #43C6AC; /* Content Curator - mint */
+    --person: #4FACFE; /* Personalisation - sky */
+    --reward: #F59E0B; /* Reward Engine - amber */
+    --story:  #A78BFA; /* Story Gen - lavender */
+    --why:    #F472B6; /* Why Gen - pink */
+    --puzzle: #34D399; /* Puzzle Selector - emerald */
+    --parent: #60A5FA; /* Parent Report - blue */
+    --safety: #FB923C; /* Safety - orange */
+    --data:   #94A3B8; /* Data Persistence - slate */
+
+    --text: #F1F5F9;
+    --muted: #64748B;
+    --dim: #334155;
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    font-family: 'Syne', sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    min-height: 100vh;
+    overflow-x: hidden;
+  }
+
+  /* ── Header ── */
+  .header {
+    padding: 48px 48px 32px;
+    border-bottom: 1px solid var(--border);
+    background: linear-gradient(180deg, rgba(249,119,148,0.06) 0%, transparent 100%);
+    position: relative;
+    overflow: hidden;
+  }
+  .header::before {
+    content: '';
+    position: absolute;
+    width: 600px; height: 600px;
+    border-radius: 50%;
+    background: radial-gradient(circle, rgba(249,119,148,0.08) 0%, transparent 70%);
+    top: -200px; right: -100px;
+    pointer-events: none;
+  }
+  .header-label {
+    font-family: 'DM Mono', monospace;
+    font-size: 11px;
+    color: var(--orch);
+    letter-spacing: 0.15em;
+    text-transform: uppercase;
+    margin-bottom: 12px;
+  }
+  .header h1 {
+    font-size: 32px;
+    font-weight: 800;
+    color: var(--text);
+    line-height: 1.1;
+    max-width: 600px;
+  }
+  .header h1 span { color: var(--orch); }
+  .header-sub {
+    font-family: 'DM Mono', monospace;
+    font-size: 13px;
+    color: var(--muted);
+    margin-top: 12px;
+    line-height: 1.7;
+    max-width: 680px;
+  }
+
+  /* ── Legend ── */
+  .legend {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+    padding: 20px 48px;
+    border-bottom: 1px solid var(--border);
+    background: var(--surface);
+  }
+  .legend-item {
+    display: flex;
+    align-items: center;
+    gap: 7px;
+    font-family: 'DM Mono', monospace;
+    font-size: 11px;
+    color: var(--muted);
+  }
+  .legend-dot {
+    width: 10px; height: 10px;
+    border-radius: 3px;
+    flex-shrink: 0;
+  }
+  .legend-sep {
+    width: 1px;
+    height: 20px;
+    background: var(--border);
+    margin: 0 6px;
+  }
+  .legend-shape {
+    display: flex;
+    align-items: center;
+    gap: 7px;
+    font-family: 'DM Mono', monospace;
+    font-size: 11px;
+    color: var(--muted);
+  }
+  .shape-diamond {
+    width: 12px; height: 12px;
+    background: var(--dim);
+    transform: rotate(45deg);
+    flex-shrink: 0;
+  }
+  .shape-rect {
+    width: 14px; height: 10px;
+    background: var(--dim);
+    border-radius: 2px;
+    flex-shrink: 0;
+  }
+  .shape-pill {
+    width: 18px; height: 10px;
+    background: var(--dim);
+    border-radius: 5px;
+    flex-shrink: 0;
+  }
+
+  /* ── Main canvas ── */
+  .canvas {
+    padding: 40px 48px 80px;
+    position: relative;
+  }
+
+  /* ── Flow sections ── */
+  .flow-section {
+    margin-bottom: 8px;
+    position: relative;
+  }
+  .section-label {
+    font-family: 'DM Mono', monospace;
+    font-size: 10px;
+    color: var(--muted);
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    margin-bottom: 14px;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }
+  .section-label::after {
+    content: '';
+    flex: 1;
+    height: 1px;
+    background: var(--border);
+  }
+
+  /* ── Row layouts ── */
+  .row {
+    display: flex;
+    align-items: flex-start;
+    gap: 0;
+    position: relative;
+    margin-bottom: 0;
+  }
+  .row-center {
+    align-items: center;
+  }
+  .col {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 0;
+  }
+
+  /* ── Nodes ── */
+  .node {
+    position: relative;
+    border-radius: 14px;
+    padding: 14px 18px;
+    border: 1px solid var(--border);
+    background: var(--surface2);
+    cursor: pointer;
+    transition: all 0.2s ease;
+    min-width: 160px;
+    text-align: center;
+  }
+  .node:hover {
+    transform: translateY(-2px);
+    border-color: var(--border-bright);
+  }
+  .node:hover .node-glow { opacity: 1; }
+  .node-glow {
+    position: absolute;
+    inset: -1px;
+    border-radius: 14px;
+    opacity: 0;
+    transition: opacity 0.2s;
+    pointer-events: none;
+    z-index: 0;
+  }
+  .node-inner { position: relative; z-index: 1; }
+  .node-icon {
+    font-size: 20px;
+    margin-bottom: 6px;
+    display: block;
+    line-height: 1;
+  }
+  .node-title {
+    font-size: 12px;
+    font-weight: 700;
+    line-height: 1.3;
+    margin-bottom: 3px;
+  }
+  .node-sub {
+    font-family: 'DM Mono', monospace;
+    font-size: 10px;
+    color: var(--muted);
+    line-height: 1.5;
+  }
+  .node-tag {
+    display: inline-block;
+    font-family: 'DM Mono', monospace;
+    font-size: 9px;
+    border-radius: 4px;
+    padding: 2px 7px;
+    margin-top: 6px;
+    font-weight: 500;
+  }
+
+  /* ── Agent node colours ── */
+  .n-orch   { border-color: rgba(249,119,148,0.4); background: rgba(249,119,148,0.07); }
+  .n-orch   .node-title { color: var(--orch); }
+  .n-orch   .node-glow { box-shadow: 0 0 20px rgba(249,119,148,0.25); border: 1px solid rgba(249,119,148,0.5); }
+
+  .n-content { border-color: rgba(67,198,172,0.4); background: rgba(67,198,172,0.07); }
+  .n-content .node-title { color: var(--content); }
+  .n-content .node-glow { box-shadow: 0 0 20px rgba(67,198,172,0.25); border: 1px solid rgba(67,198,172,0.5); }
+
+  .n-person { border-color: rgba(79,172,254,0.4); background: rgba(79,172,254,0.07); }
+  .n-person .node-title { color: var(--person); }
+  .n-person .node-glow { box-shadow: 0 0 20px rgba(79,172,254,0.25); border: 1px solid rgba(79,172,254,0.5); }
+
+  .n-reward { border-color: rgba(245,158,11,0.4); background: rgba(245,158,11,0.07); }
+  .n-reward .node-title { color: var(--reward); }
+  .n-reward .node-glow { box-shadow: 0 0 20px rgba(245,158,11,0.25); border: 1px solid rgba(245,158,11,0.5); }
+
+  .n-story  { border-color: rgba(167,139,250,0.4); background: rgba(167,139,250,0.07); }
+  .n-story  .node-title { color: var(--story); }
+  .n-story  .node-glow { box-shadow: 0 0 20px rgba(167,139,250,0.25); border: 1px solid rgba(167,139,250,0.5); }
+
+  .n-why    { border-color: rgba(244,114,182,0.4); background: rgba(244,114,182,0.07); }
+  .n-why    .node-title { color: var(--why); }
+  .n-why    .node-glow { box-shadow: 0 0 20px rgba(244,114,182,0.25); border: 1px solid rgba(244,114,182,0.5); }
+
+  .n-puzzle { border-color: rgba(52,211,153,0.4); background: rgba(52,211,153,0.07); }
+  .n-puzzle .node-title { color: var(--puzzle); }
+  .n-puzzle .node-glow { box-shadow: 0 0 20px rgba(52,211,153,0.25); border: 1px solid rgba(52,211,153,0.5); }
+
+  .n-parent { border-color: rgba(96,165,250,0.4); background: rgba(96,165,250,0.07); }
+  .n-parent .node-title { color: var(--parent); }
+  .n-parent .node-glow { box-shadow: 0 0 20px rgba(96,165,250,0.25); border: 1px solid rgba(96,165,250,0.5); }
+
+  .n-safety { border-color: rgba(251,146,60,0.4); background: rgba(251,146,60,0.07); }
+  .n-safety .node-title { color: var(--safety); }
+  .n-safety .node-glow { box-shadow: 0 0 20px rgba(251,146,60,0.25); border: 1px solid rgba(251,146,60,0.5); }
+
+  .n-data   { border-color: rgba(148,163,184,0.4); background: rgba(148,163,184,0.07); }
+  .n-data   .node-title { color: var(--data); }
+  .n-data   .node-glow { box-shadow: 0 0 20px rgba(148,163,184,0.25); border: 1px solid rgba(148,163,184,0.5); }
+
+  .n-user   { border-color: rgba(255,255,255,0.2); background: rgba(255,255,255,0.04); }
+  .n-user   .node-title { color: #fff; }
+
+  /* ── Decision diamond ── */
+  .decision {
+    width: 100px; height: 100px;
+    transform: rotate(45deg);
+    border: 1px solid rgba(255,255,255,0.2);
+    background: var(--surface2);
+    position: relative;
+    cursor: pointer;
+    transition: all 0.2s;
+    flex-shrink: 0;
+  }
+  .decision:hover { border-color: rgba(255,255,255,0.4); }
+  .decision-inner {
+    position: absolute;
+    inset: 0;
+    transform: rotate(-45deg);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-direction: column;
+    text-align: center;
+    padding: 8px;
+  }
+  .decision-text {
+    font-size: 10px;
+    font-weight: 700;
+    line-height: 1.3;
+    color: var(--text);
+  }
+  .decision-sub {
+    font-family: 'DM Mono', monospace;
+    font-size: 8px;
+    color: var(--muted);
+    margin-top: 2px;
+    line-height: 1.4;
+  }
+
+  /* Decision variants */
+  .d-safety { border-color: rgba(251,146,60,0.5); background: rgba(251,146,60,0.08); }
+  .d-safety .decision-text { color: var(--safety); }
+  .d-reward { border-color: rgba(245,158,11,0.5); background: rgba(245,158,11,0.08); }
+  .d-reward .decision-text { color: var(--reward); }
+  .d-person { border-color: rgba(79,172,254,0.5); background: rgba(79,172,254,0.08); }
+  .d-person .decision-text { color: var(--person); }
+  .d-content { border-color: rgba(67,198,172,0.5); background: rgba(67,198,172,0.08); }
+  .d-content .decision-text { color: var(--content); }
+
+  /* ── SVG connectors ── */
+  .connector-svg {
+    position: absolute;
+    top: 0; left: 0;
+    width: 100%; height: 100%;
+    pointer-events: none;
+    overflow: visible;
+    z-index: 0;
+  }
+  .arrow-line {
+    stroke-width: 1.5;
+    fill: none;
+    stroke-dasharray: none;
+    marker-end: url(#arrowhead);
+  }
+  .arrow-dashed {
+    stroke-dasharray: 5 3;
+    stroke-width: 1.5;
+    fill: none;
+    marker-end: url(#arrowhead-dim);
+  }
+  .feedback-line {
+    stroke-dasharray: 4 3;
+    stroke-width: 1.5;
+    fill: none;
+    marker-end: url(#arrowhead-orange);
+  }
+
+  /* ── The actual flow diagram via CSS Grid ── */
+  .diagram {
+    position: relative;
+    width: 100%;
+    max-width: 1200px;
+    margin: 0 auto;
+  }
+
+  /* ── Connector arrows (inline styled) ── */
+  .arrow-v {
+    width: 2px;
+    height: 32px;
+    background: var(--border-bright);
+    margin: 0 auto;
+    position: relative;
+    flex-shrink: 0;
+  }
+  .arrow-v::after {
+    content: '';
+    position: absolute;
+    bottom: -5px;
+    left: 50%;
+    transform: translateX(-50%);
+    border-left: 5px solid transparent;
+    border-right: 5px solid transparent;
+    border-top: 7px solid var(--border-bright);
+  }
+  .arrow-v.c-orch::after { border-top-color: var(--orch); }
+  .arrow-v.c-orch { background: var(--orch); opacity: 0.5; }
+  .arrow-v.c-content::after { border-top-color: var(--content); }
+  .arrow-v.c-content { background: var(--content); opacity: 0.5; }
+  .arrow-v.c-person::after { border-top-color: var(--person); }
+  .arrow-v.c-person { background: var(--person); opacity: 0.5; }
+  .arrow-v.c-safety::after { border-top-color: var(--safety); }
+  .arrow-v.c-safety { background: var(--safety); opacity: 0.5; }
+  .arrow-v.c-reward::after { border-top-color: var(--reward); }
+  .arrow-v.c-reward { background: var(--reward); opacity: 0.5; }
+  .arrow-v.c-data::after { border-top-color: var(--data); }
+  .arrow-v.c-data { background: var(--data); opacity: 0.5; }
+  .arrow-v.tall { height: 48px; }
+  .arrow-v.short { height: 20px; }
+
+  /* horizontal connector */
+  .arrow-h {
+    height: 2px;
+    background: var(--border-bright);
+    flex-shrink: 0;
+    position: relative;
+    align-self: center;
+  }
+  .arrow-h::after {
+    content: '';
+    position: absolute;
+    right: -5px;
+    top: 50%;
+    transform: translateY(-50%);
+    border-top: 5px solid transparent;
+    border-bottom: 5px solid transparent;
+    border-left: 7px solid var(--border-bright);
+  }
+  .arrow-h.left::after {
+    right: unset;
+    left: -5px;
+    border-left: none;
+    border-right: 7px solid var(--border-bright);
+  }
+
+  /* ── Parallel lanes ── */
+  .parallel-container {
+    display: grid;
+    gap: 16px;
+    position: relative;
+  }
+  .parallel-3 { grid-template-columns: 1fr 1fr 1fr; }
+  .parallel-2 { grid-template-columns: 1fr 1fr; }
+  .parallel-5 { grid-template-columns: repeat(5, 1fr); }
+
+  .lane {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 0;
+    position: relative;
+  }
+
+  /* lane connector lines at top */
+  .lane-line-top {
+    width: 2px;
+    height: 20px;
+    background: var(--border-bright);
+    margin: 0 auto;
+    flex-shrink: 0;
+  }
+  .lane-line-bottom {
+    width: 2px;
+    height: 20px;
+    background: var(--border-bright);
+    margin: 0 auto;
+    flex-shrink: 0;
+  }
+
+  /* bracket joining line */
+  .bracket {
+    position: relative;
+    height: 20px;
+    width: 100%;
+  }
+  .bracket-line {
+    position: absolute;
+    top: 0;
+    height: 100%;
+    border: 1px solid var(--border-bright);
+    border-bottom: none;
+  }
+
+  /* ── Join/fork bars ── */
+  .fork-bar {
+    height: 2px;
+    background: linear-gradient(90deg, transparent, var(--border-bright), transparent);
+    margin: 0;
+    position: relative;
+    width: 100%;
+  }
+  .join-bar {
+    height: 2px;
+    background: linear-gradient(90deg, transparent, var(--border-bright), transparent);
+    width: 100%;
+  }
+
+  /* ── Labels on arrows ── */
+  .arrow-label {
+    font-family: 'DM Mono', monospace;
+    font-size: 9px;
+    color: var(--muted);
+    white-space: nowrap;
+    padding: 0 6px;
+    text-align: center;
+  }
+  .arrow-label.yes { color: #22c55e; }
+  .arrow-label.no  { color: #ef4444; }
+
+  /* ── Feedback loop panel ── */
+  .feedback-panel {
+    background: rgba(251,146,60,0.06);
+    border: 1px solid rgba(251,146,60,0.2);
+    border-radius: 12px;
+    padding: 14px 18px;
+    margin-top: 32px;
+    display: flex;
+    gap: 16px;
+    align-items: flex-start;
+    flex-wrap: wrap;
+  }
+  .feedback-title {
+    font-size: 11px;
+    font-weight: 700;
+    color: var(--safety);
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    margin-bottom: 8px;
+    font-family: 'DM Mono', monospace;
+  }
+  .feedback-item {
+    display: flex;
+    align-items: flex-start;
+    gap: 8px;
+    margin-bottom: 6px;
+  }
+  .feedback-arrow {
+    font-size: 10px;
+    color: var(--safety);
+    flex-shrink: 0;
+    margin-top: 1px;
+    font-family: 'DM Mono', monospace;
+  }
+  .feedback-text {
+    font-family: 'DM Mono', monospace;
+    font-size: 11px;
+    color: var(--muted);
+    line-height: 1.6;
+  }
+  .feedback-col {
+    flex: 1;
+    min-width: 220px;
+  }
+
+  /* ── Info panel per agent ── */
+  .agent-detail-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+    gap: 12px;
+    margin-top: 40px;
+  }
+  .agent-card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 14px;
+    padding: 16px;
+    transition: border-color 0.2s;
+  }
+  .agent-card:hover { border-color: var(--border-bright); }
+  .agent-card-header {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin-bottom: 10px;
+  }
+  .agent-card-icon {
+    font-size: 18px;
+    width: 36px; height: 36px;
+    border-radius: 10px;
+    display: flex; align-items: center; justify-content: center;
+    background: var(--surface2);
+    flex-shrink: 0;
+  }
+  .agent-card-name {
+    font-size: 12px;
+    font-weight: 700;
+    line-height: 1.3;
+  }
+  .agent-card-role {
+    font-family: 'DM Mono', monospace;
+    font-size: 10px;
+    color: var(--muted);
+  }
+  .agent-detail-row {
+    display: flex;
+    gap: 8px;
+    margin-bottom: 5px;
+    align-items: flex-start;
+  }
+  .detail-label {
+    font-family: 'DM Mono', monospace;
+    font-size: 10px;
+    color: var(--muted);
+    min-width: 70px;
+    flex-shrink: 0;
+    padding-top: 1px;
+  }
+  .detail-val {
+    font-family: 'DM Mono', monospace;
+    font-size: 10px;
+    color: var(--text);
+    line-height: 1.6;
+  }
+
+  /* ── Flow chart itself (SVG-based main diagram) ── */
+  .main-svg-wrap {
+    width: 100%;
+    overflow-x: auto;
+    margin-bottom: 40px;
+  }
+  #main-svg {
+    display: block;
+    min-width: 900px;
+    font-family: 'DM Mono', monospace;
+  }
+
+  /* ── SVG node styles ── */
+  .svg-node rect, .svg-node path {
+    transition: filter 0.2s;
+  }
+  .svg-node:hover rect, .svg-node:hover path {
+    filter: brightness(1.3);
+  }
+  .svg-node { cursor: pointer; }
+
+  /* ── Tooltip ── */
+  #tooltip {
+    position: fixed;
+    background: var(--surface2);
+    border: 1px solid var(--border-bright);
+    border-radius: 10px;
+    padding: 12px 16px;
+    font-family: 'DM Mono', monospace;
+    font-size: 11px;
+    color: var(--text);
+    max-width: 280px;
+    pointer-events: none;
+    z-index: 999;
+    opacity: 0;
+    transition: opacity 0.15s;
+    line-height: 1.7;
+  }
+  #tooltip.show { opacity: 1; }
+  #tooltip strong {
+    display: block;
+    font-size: 12px;
+    margin-bottom: 4px;
+    font-family: 'Syne', sans-serif;
+    font-weight: 700;
+  }
+
+  /* ── Pulse animation for active nodes ── */
+  @keyframes pulse-ring {
+    0% { transform: scale(1); opacity: 0.6; }
+    100% { transform: scale(1.8); opacity: 0; }
+  }
+  .pulse { animation: pulse-ring 1.8s ease-out infinite; }
+
+  /* mobile responsiveness */
+  @media (max-width: 768px) {
+    .header { padding: 28px 20px 24px; }
+    .header h1 { font-size: 22px; }
+    .legend { padding: 14px 20px; }
+    .canvas { padding: 24px 16px 60px; }
+    #main-svg { min-width: 820px; }
+  }
+</style>
+</head>
+<body>
+
+<!-- Header -->
+<div class="header">
+  <div class="header-label">// Multi-Agent AI Architecture</div>
+  <h1>Little Thinkers<br><span>AI Agent System</span></h1>
+  <div class="header-sub">
+    10 specialised agents · 3 trigger paths · 5 feedback loops · 1 safety gate<br>
+    Hover any node to see its inputs, outputs, and decision rules.
+  </div>
+</div>
+
+<!-- Legend -->
+<div class="legend">
+  <div class="legend-item"><div class="legend-dot" style="background:var(--orch)"></div>Orchestrator</div>
+  <div class="legend-item"><div class="legend-dot" style="background:var(--content)"></div>Content Curator</div>
+  <div class="legend-item"><div class="legend-dot" style="background:var(--person)"></div>Personalisation</div>
+  <div class="legend-item"><div class="legend-dot" style="background:var(--story)"></div>Story Generator</div>
+  <div class="legend-item"><div class="legend-dot" style="background:var(--why)"></div>Why Generator</div>
+  <div class="legend-item"><div class="legend-dot" style="background:var(--puzzle)"></div>Puzzle Selector</div>
+  <div class="legend-item"><div class="legend-dot" style="background:var(--safety)"></div>Safety Agent</div>
+  <div class="legend-item"><div class="legend-dot" style="background:var(--reward)"></div>Reward Engine</div>
+  <div class="legend-item"><div class="legend-dot" style="background:var(--parent)"></div>Parent Report</div>
+  <div class="legend-item"><div class="legend-dot" style="background:var(--data)"></div>Data Persistence</div>
+  <div class="legend-sep"></div>
+  <div class="legend-shape"><div class="shape-rect"></div>Agent / Process</div>
+  <div class="legend-shape"><div class="shape-diamond"></div>Decision</div>
+  <div class="legend-shape"><div class="shape-pill"></div>I/O Event</div>
+</div>
+
+<!-- Main diagram -->
+<div class="canvas">
+  <div class="main-svg-wrap">
+    <svg id="main-svg" viewBox="0 0 1100 2060" xmlns="http://www.w3.org/2000/svg">
+      <defs>
+        <!-- Arrowhead markers -->
+        <marker id="arr" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+          <path d="M1 1L9 5L1 9" fill="none" stroke="rgba(255,255,255,0.3)" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+        </marker>
+        <marker id="arr-orch" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+          <path d="M1 1L9 5L1 9" fill="none" stroke="#F97794" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+        </marker>
+        <marker id="arr-content" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+          <path d="M1 1L9 5L1 9" fill="none" stroke="#43C6AC" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+        </marker>
+        <marker id="arr-person" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+          <path d="M1 1L9 5L1 9" fill="none" stroke="#4FACFE" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+        </marker>
+        <marker id="arr-safety" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+          <path d="M1 1L9 5L1 9" fill="none" stroke="#FB923C" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+        </marker>
+        <marker id="arr-reward" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+          <path d="M1 1L9 5L1 9" fill="none" stroke="#F59E0B" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+        </marker>
+        <marker id="arr-data" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+          <path d="M1 1L9 5L1 9" fill="none" stroke="#94A3B8" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+        </marker>
+        <marker id="arr-red" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+          <path d="M1 1L9 5L1 9" fill="none" stroke="#ef4444" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+        </marker>
+        <marker id="arr-green" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+          <path d="M1 1L9 5L1 9" fill="none" stroke="#22c55e" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+        </marker>
+        <marker id="arr-dim" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+          <path d="M1 1L9 5L1 9" fill="none" stroke="#334155" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+        </marker>
+        <!-- Glow filter -->
+        <filter id="glow-coral"><feGaussianBlur stdDeviation="3" result="blur"/><feMerge><feMergeNode in="blur"/><feMergeNode in="SourceGraphic"/></feMerge></filter>
+        <!-- Subtle shadow -->
+        <filter id="shadow"><feDropShadow dx="0" dy="2" stdDeviation="4" flood-color="rgba(0,0,0,0.4)"/></filter>
+      </defs>
+
+      <!-- ═══════════════════════════════════════════════════════ -->
+      <!-- ZONE 0: TRIGGERS -->
+      <!-- ═══════════════════════════════════════════════════════ -->
+      <text x="550" y="26" text-anchor="middle" font-family="'DM Mono',monospace" font-size="10" fill="#334155" letter-spacing="2">── TRIGGER SOURCES ──</text>
+
+      <!-- User Opens App -->
+      <g class="svg-node" data-tip="user-open" transform="translate(190,38)">
+        <rect width="140" height="52" rx="26" fill="rgba(255,255,255,0.05)" stroke="rgba(255,255,255,0.18)" stroke-width="1"/>
+        <text x="70" y="22" text-anchor="middle" font-family="'Syne',sans-serif" font-size="11" fill="#fff" font-weight="700">👤 User Opens App</text>
+        <text x="70" y="38" text-anchor="middle" font-family="'DM Mono',monospace" font-size="9" fill="#64748B">PWA loads / session start</text>
+      </g>
+
+      <!-- Scheduled (Daily) -->
+      <g class="svg-node" data-tip="scheduled" transform="translate(480,38)">
+        <rect width="140" height="52" rx="26" fill="rgba(255,255,255,0.05)" stroke="rgba(255,255,255,0.18)" stroke-width="1"/>
+        <text x="70" y="22" text-anchor="middle" font-family="'Syne',sans-serif" font-size="11" fill="#fff" font-weight="700">⏰ Daily Scheduler</text>
+        <text x="70" y="38" text-anchor="middle" font-family="'DM Mono',monospace" font-size="9" fill="#64748B">00:00 UTC cron trigger</text>
+      </g>
+
+      <!-- Parent Requests Report -->
+      <g class="svg-node" data-tip="parent-trigger" transform="translate(770,38)">
+        <rect width="160" height="52" rx="26" fill="rgba(255,255,255,0.05)" stroke="rgba(255,255,255,0.18)" stroke-width="1"/>
+        <text x="80" y="22" text-anchor="middle" font-family="'Syne',sans-serif" font-size="11" fill="#fff" font-weight="700">📊 Parent Zone Open</text>
+        <text x="80" y="38" text-anchor="middle" font-family="'DM Mono',monospace" font-size="9" fill="#64748B">Weekly report requested</text>
+      </g>
+
+      <!-- arrows from triggers down -->
+      <line x1="260" y1="90" x2="520" y2="130" stroke="rgba(255,255,255,0.2)" stroke-width="1.5" marker-end="url(#arr)"/>
+      <line x1="550" y1="90" x2="550" y2="130" stroke="rgba(255,255,255,0.2)" stroke-width="1.5" marker-end="url(#arr)"/>
+      <line x1="850" y1="90" x2="590" y2="130" stroke="rgba(255,255,255,0.2)" stroke-width="1.5" marker-end="url(#arr)"/>
+
+      <!-- ═══════════════════════════════════════════════════════ -->
+      <!-- ZONE 1: ORCHESTRATOR -->
+      <!-- ═══════════════════════════════════════════════════════ -->
+      <text x="550" y="126" text-anchor="middle" font-family="'DM Mono',monospace" font-size="10" fill="#334155" letter-spacing="2">── LAYER 1: ORCHESTRATION ──</text>
+
+      <g class="svg-node" data-tip="orchestrator" transform="translate(400,138)">
+        <rect width="300" height="72" rx="14" fill="rgba(249,119,148,0.1)" stroke="rgba(249,119,148,0.5)" stroke-width="1.5" filter="url(#shadow)"/>
+        <text x="150" y="24" text-anchor="middle" font-family="'Syne',sans-serif" font-size="13" fill="#F97794" font-weight="800">🎯 Orchestrator Agent</text>
+        <text x="150" y="42" text-anchor="middle" font-family="'DM Mono',monospace" font-size="10" fill="#94A3B8">Classifies intent · Routes to sub-agents</text>
+        <text x="150" y="58" text-anchor="middle" font-family="'DM Mono',monospace" font-size="10" fill="#94A3B8">Manages concurrency · Aggregates outputs</text>
+      </g>
+
+      <!-- ═══════════════════════════════════════════════════════ -->
+      <!-- ZONE 1b: DECISION — what triggered this? -->
+      <!-- ═══════════════════════════════════════════════════════ -->
+      <line x1="550" y1="210" x2="550" y2="238" stroke="#F97794" stroke-width="1.5" stroke-opacity="0.6" marker-end="url(#arr-orch)"/>
+
+      <!-- Decision diamond -->
+      <g class="svg-node" data-tip="dec-intent" transform="translate(480,240)">
+        <rect width="140" height="140" rx="4" fill="rgba(249,119,148,0.08)" stroke="rgba(249,119,148,0.4)" stroke-width="1.5" transform="rotate(45 70 70)"/>
+        <text x="70" y="62" text-anchor="middle" font-family="'Syne',sans-serif" font-size="11" fill="#F97794" font-weight="700">Intent?</text>
+        <text x="70" y="78" text-anchor="middle" font-family="'DM Mono',monospace" font-size="9" fill="#94A3B8">What kind of</text>
+        <text x="70" y="91" text-anchor="middle" font-family="'DM Mono',monospace" font-size="9" fill="#94A3B8">request is this?</text>
+      </g>
+
+      <!-- Three branches from decision -->
+      <!-- LEFT: Daily content -->
+      <line x1="482" y1="310" x2="220" y2="350" stroke="rgba(67,198,172,0.6)" stroke-width="1.5" marker-end="url(#arr-content)"/>
+      <text x="310" y="337" text-anchor="middle" font-family="'DM Mono',monospace" font-size="9" fill="#43C6AC">daily content</text>
+
+      <!-- CENTER: User interaction -->
+      <line x1="550" y1="378" x2="550" y2="408" stroke="rgba(245,158,11,0.6)" stroke-width="1.5" marker-end="url(#arr-reward)"/>
+      <text x="590" y="396" font-family="'DM Mono',monospace" font-size="9" fill="#F59E0B">user action</text>
+
+      <!-- RIGHT: Parent report -->
+      <line x1="618" y1="310" x2="870" y2="350" stroke="rgba(96,165,250,0.6)" stroke-width="1.5" marker-end="url(#arr)"/>
+      <text x="770" y="337" text-anchor="middle" font-family="'DM Mono',monospace" font-size="9" fill="#60A5FA">report request</text>
+
+      <!-- ═══════════════════════════════════════════════════════ -->
+      <!-- ZONE 2: DATA FETCH from persistence agent -->
+      <!-- ═══════════════════════════════════════════════════════ -->
+      <text x="550" y="400" text-anchor="middle" font-family="'DM Mono',monospace" font-size="10" fill="#334155" letter-spacing="2">── LAYER 2: DATA + PERSONALISATION ──</text>
+
+      <!-- Data Persistence Agent (fetch user profile) -->
+      <g class="svg-node" data-tip="data-fetch" transform="translate(400,410)">
+        <rect width="300" height="60" rx="12" fill="rgba(148,163,184,0.08)" stroke="rgba(148,163,184,0.35)" stroke-width="1.5"/>
+        <text x="150" y="23" text-anchor="middle" font-family="'Syne',sans-serif" font-size="12" fill="#94A3B8" font-weight="700">💾 Data Persistence Agent</text>
+        <text x="150" y="40" text-anchor="middle" font-family="'DM Mono',monospace" font-size="9" fill="#64748B">GET /player/:id · GET /sessions · GET /progress</text>
+        <text x="150" y="54" text-anchor="middle" font-family="'DM Mono',monospace" font-size="9" fill="#64748B">Returns: PlayerProfile + history + WorldProgress</text>
+      </g>
+
+      <line x1="550" y1="470" x2="550" y2="496" stroke="rgba(148,163,184,0.5)" stroke-width="1.5" marker-end="url(#arr-data)"/>
+
+      <!-- Personalisation Agent -->
+      <g class="svg-node" data-tip="personalisation" transform="translate(385,498)">
+        <rect width="330" height="68" rx="12" fill="rgba(79,172,254,0.08)" stroke="rgba(79,172,254,0.4)" stroke-width="1.5"/>
+        <text x="165" y="24" text-anchor="middle" font-family="'Syne',sans-serif" font-size="12" fill="#4FACFE" font-weight="700">🧠 Personalisation Agent</text>
+        <text x="165" y="42" text-anchor="middle" font-family="'DM Mono',monospace" font-size="9" fill="#64748B">Reads: ageGroup · readHistory · gameHistory · streak</text>
+        <text x="165" y="56" text-anchor="middle" font-family="'DM Mono',monospace" font-size="9" fill="#64748B">Outputs: PersonalisedContext object → all downstream agents</text>
+      </g>
+
+      <!-- Decision: age group known? -->
+      <line x1="550" y1="566" x2="550" y2="594" stroke="rgba(79,172,254,0.5)" stroke-width="1.5" marker-end="url(#arr-person)"/>
+
+      <g class="svg-node" data-tip="dec-age" transform="translate(495,596)">
+        <rect width="110" height="110" rx="4" fill="rgba(79,172,254,0.07)" stroke="rgba(79,172,254,0.35)" stroke-width="1.5" transform="rotate(45 55 55)"/>
+        <text x="55" y="50" text-anchor="middle" font-family="'Syne',sans-serif" font-size="10" fill="#4FACFE" font-weight="700">Profile</text>
+        <text x="55" y="64" text-anchor="middle" font-family="'Syne',sans-serif" font-size="10" fill="#4FACFE" font-weight="700">complete?</text>
+        <text x="55" y="79" text-anchor="middle" font-family="'DM Mono',monospace" font-size="8" fill="#64748B">age + prefs</text>
+      </g>
+
+      <!-- No → onboarding -->
+      <line x1="496" y1="650" x2="350" y2="680" stroke="rgba(239,68,68,0.6)" stroke-width="1.5" stroke-dasharray="4 3" marker-end="url(#arr-red)"/>
+      <text x="400" y="668" text-anchor="middle" font-family="'DM Mono',monospace" font-size="9" fill="#ef4444">no → onboarding</text>
+
+      <!-- Yes → continue -->
+      <line x1="604" y1="650" x2="680" y2="680" stroke="rgba(34,197,94,0.5)" stroke-width="1.5" marker-end="url(#arr-green)"/>
+      <text x="660" y="673" font-family="'DM Mono',monospace" font-size="9" fill="#22c55e">yes</text>
+      <line x1="550" y1="704" x2="550" y2="726" stroke="rgba(79,172,254,0.4)" stroke-width="1.5" marker-end="url(#arr-person)"/>
+
+      <!-- ═══════════════════════════════════════════════════════ -->
+      <!-- ZONE 3: CONTENT CURATOR -->
+      <!-- ═══════════════════════════════════════════════════════ -->
+      <text x="550" y="722" text-anchor="middle" font-family="'DM Mono',monospace" font-size="10" fill="#334155" letter-spacing="2">── LAYER 3: CONTENT SELECTION ──</text>
+
+      <g class="svg-node" data-tip="content-curator" transform="translate(380,732)">
+        <rect width="340" height="68" rx="12" fill="rgba(67,198,172,0.08)" stroke="rgba(67,198,172,0.4)" stroke-width="1.5"/>
+        <text x="170" y="24" text-anchor="middle" font-family="'Syne',sans-serif" font-size="12" fill="#43C6AC" font-weight="700">📋 Content Curator Agent</text>
+        <text x="170" y="42" text-anchor="middle" font-family="'DM Mono',monospace" font-size="9" fill="#64748B">Reads PersonalisedContext + publishSchedule</text>
+        <text x="170" y="56" text-anchor="middle" font-family="'DM Mono',monospace" font-size="9" fill="#64748B">Selects: daily Why + Story + Puzzle candidates</text>
+      </g>
+
+      <!-- Decision: content in cache? -->
+      <line x1="550" y1="800" x2="550" y2="826" stroke="rgba(67,198,172,0.5)" stroke-width="1.5" marker-end="url(#arr-content)"/>
+
+      <g class="svg-node" data-tip="dec-cache" transform="translate(491,828)">
+        <rect width="118" height="118" rx="4" fill="rgba(67,198,172,0.07)" stroke="rgba(67,198,172,0.35)" stroke-width="1.5" transform="rotate(45 59 59)"/>
+        <text x="59" y="52" text-anchor="middle" font-family="'Syne',sans-serif" font-size="10" fill="#43C6AC" font-weight="700">Content</text>
+        <text x="59" y="66" text-anchor="middle" font-family="'Syne',sans-serif" font-size="10" fill="#43C6AC" font-weight="700">cached?</text>
+        <text x="59" y="82" text-anchor="middle" font-family="'DM Mono',monospace" font-size="8" fill="#64748B">today's slot</text>
+        <text x="59" y="93" text-anchor="middle" font-family="'DM Mono',monospace" font-size="8" fill="#64748B">already set?</text>
+      </g>
+
+      <!-- YES: skip generation -->
+      <line x1="609" y1="887" x2="700" y2="887" stroke="rgba(34,197,94,0.5)" stroke-width="1.5" marker-end="url(#arr-green)"/>
+      <line x1="700" y1="887" x2="700" y2="1080" stroke="rgba(34,197,94,0.4)" stroke-width="1.5" stroke-dasharray="5 3"/>
+      <line x1="700" y1="1080" x2="640" y2="1080" stroke="rgba(34,197,94,0.4)" stroke-width="1.5" marker-end="url(#arr-green)"/>
+      <text x="720" y="883" font-family="'DM Mono',monospace" font-size="9" fill="#22c55e">cached ✓</text>
+      <text x="715" y="970" font-family="'DM Mono',monospace" font-size="9" fill="#22c55e" transform="rotate(90 715 970)">skip generation</text>
+
+      <!-- NO: generate in parallel -->
+      <line x1="550" y1="946" x2="550" y2="976" stroke="rgba(67,198,172,0.5)" stroke-width="1.5" marker-end="url(#arr-content)"/>
+      <text x="560" y="963" font-family="'DM Mono',monospace" font-size="9" fill="#ef4444">not cached</text>
+
+      <!-- ═══════════════════════════════════════════════════════ -->
+      <!-- ZONE 4: GENERATION AGENTS (parallel) -->
+      <!-- ═══════════════════════════════════════════════════════ -->
+      <text x="550" y="972" text-anchor="middle" font-family="'DM Mono',monospace" font-size="10" fill="#334155" letter-spacing="2">── LAYER 4: CONTENT GENERATION (PARALLEL) ──</text>
+
+      <!-- Fork bar -->
+      <line x1="200" y1="982" x2="900" y2="982" stroke="rgba(255,255,255,0.12)" stroke-width="1.5"/>
+      <line x1="240" y1="982" x2="240" y2="1000" stroke="rgba(244,114,182,0.5)" stroke-width="1.5" marker-end="url(#arr)"/>
+      <line x1="550" y1="982" x2="550" y2="1000" stroke="rgba(167,139,250,0.5)" stroke-width="1.5" marker-end="url(#arr)"/>
+      <line x1="860" y1="982" x2="860" y2="1000" stroke="rgba(52,211,153,0.5)" stroke-width="1.5" marker-end="url(#arr)"/>
+
+      <!-- Why Generator -->
+      <g class="svg-node" data-tip="why-gen" transform="translate(110,1002)">
+        <rect width="260" height="78" rx="12" fill="rgba(244,114,182,0.08)" stroke="rgba(244,114,182,0.4)" stroke-width="1.5"/>
+        <text x="130" y="24" text-anchor="middle" font-family="'Syne',sans-serif" font-size="12" fill="#F472B6" font-weight="700">🔬 Why Generator Agent</text>
+        <text x="130" y="42" text-anchor="middle" font-family="'DM Mono',monospace" font-size="9" fill="#64748B">Selects topic from content/tell-me-why/</text>
+        <text x="130" y="56" text-anchor="middle" font-family="'DM Mono',monospace" font-size="9" fill="#64748B">Adapts text to ageGroup variant</text>
+        <text x="130" y="70" text-anchor="middle" font-family="'DM Mono',monospace" font-size="9" fill="#64748B">Generates keyTerms + nextQuestion</text>
+      </g>
+
+      <!-- Story Generator -->
+      <g class="svg-node" data-tip="story-gen" transform="translate(420,1002)">
+        <rect width="260" height="78" rx="12" fill="rgba(167,139,250,0.08)" stroke="rgba(167,139,250,0.4)" stroke-width="1.5"/>
+        <text x="130" y="24" text-anchor="middle" font-family="'Syne',sans-serif" font-size="12" fill="#A78BFA" font-weight="700">📖 Story Generator Agent</text>
+        <text x="130" y="42" text-anchor="middle" font-family="'DM Mono',monospace" font-size="9" fill="#64748B">Selects story by theme + ageGroup</text>
+        <text x="130" y="56" text-anchor="middle" font-family="'DM Mono',monospace" font-size="9" fill="#64748B">Generates moral + reflectionQuestion</text>
+        <text x="130" y="70" text-anchor="middle" font-family="'DM Mono',monospace" font-size="9" fill="#64748B">Optionally generates moralQuizOptions</text>
+      </g>
+
+      <!-- Puzzle Selector -->
+      <g class="svg-node" data-tip="puzzle-sel" transform="translate(730,1002)">
+        <rect width="260" height="78" rx="12" fill="rgba(52,211,153,0.08)" stroke="rgba(52,211,153,0.4)" stroke-width="1.5"/>
+        <text x="130" y="24" text-anchor="middle" font-family="'Syne',sans-serif" font-size="12" fill="#34D399" font-weight="700">🧩 Puzzle Selector Agent</text>
+        <text x="130" y="42" text-anchor="middle" font-family="'DM Mono',monospace" font-size="9" fill="#64748B">Picks from 5 games based on history</text>
+        <text x="130" y="56" text-anchor="middle" font-family="'DM Mono',monospace" font-size="9" fill="#64748B">Balances difficulty vs. streak state</text>
+        <text x="130" y="70" text-anchor="middle" font-family="'DM Mono',monospace" font-size="9" fill="#64748B">Attaches daily reset timer metadata</text>
+      </g>
+
+      <!-- join bar -->
+      <line x1="240" y1="1080" x2="240" y2="1098" stroke="rgba(244,114,182,0.5)" stroke-width="1.5"/>
+      <line x1="550" y1="1080" x2="550" y2="1098" stroke="rgba(167,139,250,0.5)" stroke-width="1.5"/>
+      <line x1="860" y1="1080" x2="860" y2="1098" stroke="rgba(52,211,153,0.5)" stroke-width="1.5"/>
+      <line x1="200" y1="1098" x2="900" y2="1098" stroke="rgba(255,255,255,0.12)" stroke-width="1.5"/>
+      <line x1="550" y1="1098" x2="550" y2="1120" stroke="rgba(251,146,60,0.6)" stroke-width="1.5" marker-end="url(#arr-safety)"/>
+
+      <!-- ═══════════════════════════════════════════════════════ -->
+      <!-- ZONE 5: SAFETY GATE -->
+      <!-- ═══════════════════════════════════════════════════════ -->
+      <text x="550" y="1116" text-anchor="middle" font-family="'DM Mono',monospace" font-size="10" fill="#334155" letter-spacing="2">── LAYER 5: SAFETY GATE (MANDATORY) ──</text>
+
+      <g class="svg-node" data-tip="safety" transform="translate(360,1126)">
+        <rect width="380" height="78" rx="12" fill="rgba(251,146,60,0.1)" stroke="rgba(251,146,60,0.5)" stroke-width="2"/>
+        <text x="190" y="24" text-anchor="middle" font-family="'Syne',sans-serif" font-size="13" fill="#FB923C" font-weight="800">🛡 Safety &amp; Moderation Agent</text>
+        <text x="190" y="42" text-anchor="middle" font-family="'DM Mono',monospace" font-size="9" fill="#94A3B8">Age-appropriateness check · Readability score</text>
+        <text x="190" y="56" text-anchor="middle" font-family="'DM Mono',monospace" font-size="9" fill="#94A3B8">Toxicity filter · Accuracy heuristic · COPPA flag scan</text>
+        <text x="190" y="70" text-anchor="middle" font-family="'DM Mono',monospace" font-size="9" fill="#94A3B8">All 3 content pieces evaluated before any proceed</text>
+      </g>
+
+      <!-- Decision: passes safety? -->
+      <line x1="550" y1="1204" x2="550" y2="1232" stroke="rgba(251,146,60,0.5)" stroke-width="1.5" marker-end="url(#arr-safety)"/>
+
+      <g class="svg-node" data-tip="dec-safety" transform="translate(486,1234)">
+        <rect width="128" height="128" rx="4" fill="rgba(251,146,60,0.08)" stroke="rgba(251,146,60,0.45)" stroke-width="1.5" transform="rotate(45 64 64)"/>
+        <text x="64" y="55" text-anchor="middle" font-family="'Syne',sans-serif" font-size="11" fill="#FB923C" font-weight="700">Passes</text>
+        <text x="64" y="70" text-anchor="middle" font-family="'Syne',sans-serif" font-size="11" fill="#FB923C" font-weight="700">safety?</text>
+        <text x="64" y="88" text-anchor="middle" font-family="'DM Mono',monospace" font-size="8" fill="#64748B">score ≥ 0.92</text>
+      </g>
+
+      <!-- NO → feedback to generator -->
+      <line x1="486" y1="1298" x2="320" y2="1298" stroke="rgba(239,68,68,0.6)" stroke-width="1.5" stroke-dasharray="4 3" marker-end="url(#arr-red)"/>
+      <line x1="320" y1="1298" x2="320" y2="1041" stroke="rgba(239,68,68,0.4)" stroke-width="1.5" stroke-dasharray="4 3"/>
+      <line x1="320" y1="1041" x2="370" y2="1041" stroke="rgba(239,68,68,0.4)" stroke-width="1.5" stroke-dasharray="4 3" marker-end="url(#arr-red)"/>
+      <text x="295" y="1180" font-family="'DM Mono',monospace" font-size="9" fill="#ef4444" transform="rotate(-90 295 1180)">fail → regenerate (max 3×)</text>
+
+      <!-- YES → proceed -->
+      <line x1="614" y1="1298" x2="680" y2="1298" stroke="rgba(34,197,94,0.5)" stroke-width="1.5" marker-end="url(#arr-green)"/>
+      <text x="634" y="1291" font-family="'DM Mono',monospace" font-size="9" fill="#22c55e">pass ✓</text>
+      <line x1="550" y1="1362" x2="550" y2="1388" stroke="rgba(67,198,172,0.5)" stroke-width="1.5" marker-end="url(#arr-content)"/>
+
+      <!-- fallback node -->
+      <g class="svg-node" data-tip="fallback" transform="translate(82,1280)">
+        <rect width="150" height="42" rx="10" fill="rgba(239,68,68,0.07)" stroke="rgba(239,68,68,0.3)" stroke-width="1"/>
+        <text x="75" y="18" text-anchor="middle" font-family="'Syne',sans-serif" font-size="10" fill="#ef4444" font-weight="700">⚠ Use fallback</text>
+        <text x="75" y="32" text-anchor="middle" font-family="'DM Mono',monospace" font-size="9" fill="#64748B">pre-vetted static content</text>
+      </g>
+      <line x1="232" y1="1301" x2="232" y2="1301" stroke="rgba(239,68,68,0.5)" stroke-width="1" marker-end="url(#arr-red)"/>
+
+      <!-- ═══════════════════════════════════════════════════════ -->
+      <!-- ZONE 6: REWARD ENGINE + DELIVERY -->
+      <!-- ═══════════════════════════════════════════════════════ -->
+      <text x="550" y="1384" text-anchor="middle" font-family="'DM Mono',monospace" font-size="10" fill="#334155" letter-spacing="2">── LAYER 6: REWARD + DELIVERY ──</text>
+
+      <!-- Two parallel: Reward Engine + Delivery prep -->
+      <line x1="350" y1="1394" x2="350" y2="1410" stroke="rgba(245,158,11,0.5)" stroke-width="1.5" marker-end="url(#arr-reward)"/>
+      <line x1="750" y1="1394" x2="750" y2="1410" stroke="rgba(67,198,172,0.5)" stroke-width="1.5" marker-end="url(#arr-content)"/>
+      <line x1="300" y1="1394" x2="800" y2="1394" stroke="rgba(255,255,255,0.1)" stroke-width="1.5"/>
+
+      <!-- Reward Engine -->
+      <g class="svg-node" data-tip="reward" transform="translate(160,1412)">
+        <rect width="380" height="78" rx="12" fill="rgba(245,158,11,0.08)" stroke="rgba(245,158,11,0.4)" stroke-width="1.5"/>
+        <text x="190" y="24" text-anchor="middle" font-family="'Syne',sans-serif" font-size="12" fill="#F59E0B" font-weight="700">⭐ Reward Engine Agent</text>
+        <text x="190" y="42" text-anchor="middle" font-family="'DM Mono',monospace" font-size="9" fill="#64748B">Evaluates: session outcome · hintsUsed · solveMethod</text>
+        <text x="190" y="56" text-anchor="middle" font-family="'DM Mono',monospace" font-size="9" fill="#64748B">Runs BadgeEvaluator · Updates BrainJar balance</text>
+        <text x="190" y="70" text-anchor="middle" font-family="'DM Mono',monospace" font-size="9" fill="#64748B">Checks streak continuity · Calculates spark delta</text>
+      </g>
+
+      <!-- Content delivery prep -->
+      <g class="svg-node" data-tip="delivery" transform="translate(600,1412)">
+        <rect width="280" height="78" rx="12" fill="rgba(67,198,172,0.08)" stroke="rgba(67,198,172,0.35)" stroke-width="1.5"/>
+        <text x="140" y="24" text-anchor="middle" font-family="'Syne',sans-serif" font-size="12" fill="#43C6AC" font-weight="700">📦 Content Assembler</text>
+        <text x="140" y="42" text-anchor="middle" font-family="'DM Mono',monospace" font-size="9" fill="#64748B">Merges Why + Story + Puzzle cards</text>
+        <text x="140" y="56" text-anchor="middle" font-family="'DM Mono',monospace" font-size="9" fill="#64748B">Injects personalised metadata</text>
+        <text x="140" y="70" text-anchor="middle" font-family="'DM Mono',monospace" font-size="9" fill="#64748B">Formats HomeScreenPayload object</text>
+      </g>
+
+      <!-- Both converge -->
+      <line x1="350" y1="1490" x2="350" y2="1510" stroke="rgba(245,158,11,0.4)" stroke-width="1.5"/>
+      <line x1="740" y1="1490" x2="740" y2="1510" stroke="rgba(67,198,172,0.4)" stroke-width="1.5"/>
+      <line x1="300" y1="1510" x2="800" y2="1510" stroke="rgba(255,255,255,0.1)" stroke-width="1.5"/>
+      <line x1="550" y1="1510" x2="550" y2="1532" stroke="rgba(148,163,184,0.5)" stroke-width="1.5" marker-end="url(#arr-data)"/>
+
+      <!-- ═══════════════════════════════════════════════════════ -->
+      <!-- ZONE 7: PERSIST + DELIVER -->
+      <!-- ═══════════════════════════════════════════════════════ -->
+      <text x="550" y="1528" text-anchor="middle" font-family="'DM Mono',monospace" font-size="10" fill="#334155" letter-spacing="2">── LAYER 7: PERSIST + DELIVER ──</text>
+
+      <g class="svg-node" data-tip="data-write" transform="translate(370,1538)">
+        <rect width="360" height="66" rx="12" fill="rgba(148,163,184,0.08)" stroke="rgba(148,163,184,0.35)" stroke-width="1.5"/>
+        <text x="180" y="24" text-anchor="middle" font-family="'Syne',sans-serif" font-size="12" fill="#94A3B8" font-weight="700">💾 Data Persistence Agent (write)</text>
+        <text x="180" y="42" text-anchor="middle" font-family="'DM Mono',monospace" font-size="9" fill="#64748B">POST /session · POST /rewards · POST /badges</text>
+        <text x="180" y="56" text-anchor="middle" font-family="'DM Mono',monospace" font-size="9" fill="#64748B">POST /streak · PATCH /player · POST /daily-content</text>
+      </g>
+
+      <line x1="550" y1="1604" x2="550" y2="1632" stroke="rgba(255,255,255,0.3)" stroke-width="1.5" marker-end="url(#arr)"/>
+
+      <!-- PWA / User -->
+      <g class="svg-node" data-tip="pwa-output" transform="translate(380,1634)">
+        <rect width="340" height="72" rx="34" fill="rgba(255,255,255,0.04)" stroke="rgba(255,255,255,0.2)" stroke-width="1.5"/>
+        <text x="170" y="26" text-anchor="middle" font-family="'Syne',sans-serif" font-size="13" fill="#fff" font-weight="800">📱 PWA — Home Screen</text>
+        <text x="170" y="44" text-anchor="middle" font-family="'DM Mono',monospace" font-size="9" fill="#64748B">Renders 3 daily cards · Brain Jar updates</text>
+        <text x="170" y="58" text-anchor="middle" font-family="'DM Mono',monospace" font-size="9" fill="#64748B">Badge toasts · Mascot mood · Streak display</text>
+      </g>
+
+      <!-- User engagement feedback loop -->
+      <line x1="380" y1="1668" x2="130" y2="1668" stroke="rgba(245,158,11,0.3)" stroke-width="1.5" stroke-dasharray="5 3"/>
+      <line x1="130" y1="1668" x2="130" y2="1430" stroke="rgba(245,158,11,0.3)" stroke-width="1.5" stroke-dasharray="5 3"/>
+      <line x1="130" y1="1430" x2="160" y2="1430" stroke="rgba(245,158,11,0.3)" stroke-width="1.5" stroke-dasharray="5 3" marker-end="url(#arr-reward)"/>
+      <text x="108" y="1560" font-family="'DM Mono',monospace" font-size="8" fill="#F59E0B" transform="rotate(-90 108 1560)">user completes activity → reward trigger</text>
+
+      <!-- ═══════════════════════════════════════════════════════ -->
+      <!-- ZONE 8: PARENT REPORT BRANCH -->
+      <!-- ═══════════════════════════════════════════════════════ -->
+      <text x="550" y="1724" text-anchor="middle" font-family="'DM Mono',monospace" font-size="10" fill="#334155" letter-spacing="2">── LAYER 8: PARENT REPORT BRANCH ──</text>
+
+      <!-- Parent report agent (right side branch from orchestrator) -->
+      <g class="svg-node" data-tip="parent-report" transform="translate(750,380)">
+        <rect width="290" height="78" rx="12" fill="rgba(96,165,250,0.08)" stroke="rgba(96,165,250,0.4)" stroke-width="1.5"/>
+        <text x="145" y="24" text-anchor="middle" font-family="'Syne',sans-serif" font-size="12" fill="#60A5FA" font-weight="700">📊 Parent Report Agent</text>
+        <text x="145" y="42" text-anchor="middle" font-family="'DM Mono',monospace" font-size="9" fill="#64748B">GET /sessions?week=N · aggregate</text>
+        <text x="145" y="56" text-anchor="middle" font-family="'DM Mono',monospace" font-size="9" fill="#64748B">Builds BrainReport + SkillRadar</text>
+        <text x="145" y="70" text-anchor="middle" font-family="'DM Mono',monospace" font-size="9" fill="#64748B">Generates certificate if eligible</text>
+      </g>
+      <line x1="895" y1="458" x2="895" y2="1706" stroke="rgba(96,165,250,0.2)" stroke-width="1" stroke-dasharray="4 4"/>
+      <line x1="895" y1="1706" x2="720" y2="1706" stroke="rgba(96,165,250,0.3)" stroke-width="1.5" stroke-dasharray="4 3" marker-end="url(#arr)"/>
+
+      <!-- Parent zone output -->
+      <g class="svg-node" data-tip="parent-zone" transform="translate(480,1730)">
+        <rect width="220" height="52" rx="24" fill="rgba(96,165,250,0.08)" stroke="rgba(96,165,250,0.35)" stroke-width="1.5"/>
+        <text x="110" y="22" text-anchor="middle" font-family="'Syne',sans-serif" font-size="11" fill="#60A5FA" font-weight="700">🔒 Parent Zone Screen</text>
+        <text x="110" y="38" text-anchor="middle" font-family="'DM Mono',monospace" font-size="9" fill="#64748B">BrainReport + certificate + settings</text>
+      </g>
+
+      <!-- ═══════════════════════════════════════════════════════ -->
+      <!-- ZONE 9: WEEK LEARNING LOOP -->
+      <!-- ═══════════════════════════════════════════════════════ -->
+      <line x1="590" y1="1706" x2="960" y2="1706" stroke="rgba(79,172,254,0.25)" stroke-width="1" stroke-dasharray="4 4"/>
+      <line x1="960" y1="1706" x2="960" y2="498" stroke="rgba(79,172,254,0.25)" stroke-width="1" stroke-dasharray="4 4"/>
+      <line x1="960" y1="498" x2="880" y2="530" stroke="rgba(79,172,254,0.3)" stroke-width="1.5" stroke-dasharray="4 3" marker-end="url(#arr-person)"/>
+      <text x="975" y="1120" font-family="'DM Mono',monospace" font-size="8" fill="#4FACFE" transform="rotate(90 975 1120)">weekly engagement data → personalisation update</text>
+
+      <!-- legend labels for feedback loops -->
+      <text x="550" y="1800" text-anchor="middle" font-family="'DM Mono',monospace" font-size="10" fill="#334155" letter-spacing="2">── FEEDBACK LOOPS ──</text>
+
+      <!-- Loop 1 -->
+      <rect x="60" y="1812" width="290" height="60" rx="10" fill="rgba(245,158,11,0.06)" stroke="rgba(245,158,11,0.2)" stroke-width="1"/>
+      <text x="75" y="1833" font-family="'DM Mono',monospace" font-size="9" fill="#F59E0B">① Reward loop</text>
+      <text x="75" y="1848" font-family="'DM Mono',monospace" font-size="9" fill="#64748B">User completes activity → session logged</text>
+      <text x="75" y="1862" font-family="'DM Mono',monospace" font-size="9" fill="#64748B">→ Reward Engine recalculates → UI updates</text>
+
+      <!-- Loop 2 -->
+      <rect x="370" y="1812" width="290" height="60" rx="10" fill="rgba(239,68,68,0.06)" stroke="rgba(239,68,68,0.2)" stroke-width="1"/>
+      <text x="385" y="1833" font-family="'DM Mono',monospace" font-size="9" fill="#ef4444">② Safety regen loop</text>
+      <text x="385" y="1848" font-family="'DM Mono',monospace" font-size="9" fill="#64748B">Content fails safety → generator retries</text>
+      <text x="385" y="1862" font-family="'DM Mono',monospace" font-size="9" fill="#64748B">→ max 3 attempts → fallback static content</text>
+
+      <!-- Loop 3 -->
+      <rect x="680" y="1812" width="300" height="60" rx="10" fill="rgba(79,172,254,0.06)" stroke="rgba(79,172,254,0.2)" stroke-width="1"/>
+      <text x="695" y="1833" font-family="'DM Mono',monospace" font-size="9" fill="#4FACFE">③ Weekly learning loop</text>
+      <text x="695" y="1848" font-family="'DM Mono',monospace" font-size="9" fill="#64748B">Parent Report aggregates week's data</text>
+      <text x="695" y="1862" font-family="'DM Mono',monospace" font-size="9" fill="#64748B">→ Personalisation Agent updates model</text>
+
+      <!-- Loop 4 -->
+      <rect x="60" y="1884" width="290" height="60" rx="10" fill="rgba(67,198,172,0.06)" stroke="rgba(67,198,172,0.2)" stroke-width="1"/>
+      <text x="75" y="1905" font-family="'DM Mono',monospace" font-size="9" fill="#43C6AC">④ Cache warm loop</text>
+      <text x="75" y="1920" font-family="'DM Mono',monospace" font-size="9" fill="#64748B">Scheduler fires at 00:00 → generates</text>
+      <text x="75" y="1934" font-family="'DM Mono',monospace" font-size="9" fill="#64748B">tomorrow's content → cached → fast load</text>
+
+      <!-- Loop 5 -->
+      <rect x="370" y="1884" width="290" height="60" rx="10" fill="rgba(167,139,250,0.06)" stroke="rgba(167,139,250,0.2)" stroke-width="1"/>
+      <text x="385" y="1905" font-family="'DM Mono',monospace" font-size="9" fill="#A78BFA">⑤ Streak rescue loop</text>
+      <text x="385" y="1920" font-family="'DM Mono',monospace" font-size="9" fill="#64748B">Streak at risk → push notification</text>
+      <text x="385" y="1934" font-family="'DM Mono',monospace" font-size="9" fill="#64748B">→ simplified content served → grace day</text>
+
+      <!-- Data flow note -->
+      <rect x="680" y="1884" width="300" height="60" rx="10" fill="rgba(148,163,184,0.06)" stroke="rgba(148,163,184,0.2)" stroke-width="1"/>
+      <text x="695" y="1905" font-family="'DM Mono',monospace" font-size="9" fill="#94A3B8">⑥ API contract</text>
+      <text x="695" y="1920" font-family="'DM Mono',monospace" font-size="9" fill="#64748B">All agents → Data Persistence Agent only</text>
+      <text x="695" y="1934" font-family="'DM Mono',monospace" font-size="9" fill="#64748B">No agent writes to DB directly</text>
+
+      <!-- Bottom padding -->
+      <rect x="0" y="1955" width="1100" height="10" fill="none"/>
+    </svg>
+  </div>
+
+  <!-- Agent detail cards -->
+  <div class="section-label" style="margin-top:0">Agent Specifications — Hover nodes above or read below</div>
+  <div class="agent-detail-grid">
+
+    <div class="agent-card" style="border-left: 3px solid var(--orch)">
+      <div class="agent-card-header">
+        <div class="agent-card-icon">🎯</div>
+        <div><div class="agent-card-name" style="color:var(--orch)">Orchestrator Agent</div><div class="agent-card-role">Master controller · Layer 1</div></div>
+      </div>
+      <div class="agent-detail-row"><div class="detail-label">Triggers</div><div class="detail-val">User session open · Cron 00:00 · Parent request</div></div>
+      <div class="agent-detail-row"><div class="detail-label">Classifies</div><div class="detail-val">daily_content | user_action | parent_report</div></div>
+      <div class="agent-detail-row"><div class="detail-label">Manages</div><div class="detail-val">Parallel agent spawning · Timeout handling · Retry policy</div></div>
+      <div class="agent-detail-row"><div class="detail-label">Output</div><div class="detail-val">RoutingContext object → downstream agents</div></div>
+    </div>
+
+    <div class="agent-card" style="border-left: 3px solid var(--person)">
+      <div class="agent-card-header">
+        <div class="agent-card-icon">🧠</div>
+        <div><div class="agent-card-name" style="color:var(--person)">Personalisation Agent</div><div class="agent-card-role">Context builder · Layer 2</div></div>
+      </div>
+      <div class="agent-detail-row"><div class="detail-label">Reads</div><div class="detail-val">PlayerProfile · readHistory · sessionLogs · streak</div></div>
+      <div class="agent-detail-row"><div class="detail-label">Computes</div><div class="detail-val">ageVariant · topicWeights · difficultyBand · moodHint</div></div>
+      <div class="agent-detail-row"><div class="detail-label">Decision</div><div class="detail-val">Profile complete? → proceed | → onboarding flow</div></div>
+      <div class="agent-detail-row"><div class="detail-label">Output</div><div class="detail-val">PersonalisedContext → all 3 generator agents</div></div>
+    </div>
+
+    <div class="agent-card" style="border-left: 3px solid var(--content)">
+      <div class="agent-card-header">
+        <div class="agent-card-icon">📋</div>
+        <div><div class="agent-card-name" style="color:var(--content)">Content Curator Agent</div><div class="agent-card-role">Selection logic · Layer 3</div></div>
+      </div>
+      <div class="agent-detail-row"><div class="detail-label">Checks</div><div class="detail-val">Redis/KV cache for today's pre-built slot</div></div>
+      <div class="agent-detail-row"><div class="detail-label">Decision</div><div class="detail-val">Cached? → skip generation · Not cached? → spawn 3 generators</div></div>
+      <div class="agent-detail-row"><div class="detail-label">Avoids</div><div class="detail-val">Topics/stories seen in last 30 days</div></div>
+      <div class="agent-detail-row"><div class="detail-label">Output</div><div class="detail-val">ContentRequest × 3 → Why/Story/Puzzle agents</div></div>
+    </div>
+
+    <div class="agent-card" style="border-left: 3px solid var(--why)">
+      <div class="agent-card-header">
+        <div class="agent-card-icon">🔬</div>
+        <div><div class="agent-card-name" style="color:var(--why)">Why Generator Agent</div><div class="agent-card-role">Curiosity content · Layer 4</div></div>
+      </div>
+      <div class="agent-detail-row"><div class="detail-label">Source</div><div class="detail-val">content/tell-me-why/ JSON packs</div></div>
+      <div class="agent-detail-row"><div class="detail-label">LLM call</div><div class="detail-val">Adapt text to ageGroup · Generate keyTerms · Rephrase nextQuestion</div></div>
+      <div class="agent-detail-row"><div class="detail-label">Validates</div><div class="detail-val">Flesch-Kincaid readability · Factual heuristic check</div></div>
+      <div class="agent-detail-row"><div class="detail-label">Output</div><div class="detail-val">WhyTopic payload → Safety Agent</div></div>
+    </div>
+
+    <div class="agent-card" style="border-left: 3px solid var(--story)">
+      <div class="agent-card-header">
+        <div class="agent-card-icon">📖</div>
+        <div><div class="agent-card-name" style="color:var(--story)">Story Generator Agent</div><div class="agent-card-role">Narrative content · Layer 4</div></div>
+      </div>
+      <div class="agent-detail-row"><div class="detail-label">Source</div><div class="detail-val">content/story-time/ JSON packs</div></div>
+      <div class="agent-detail-row"><div class="detail-label">LLM call</div><div class="detail-val">Select story by theme · Adapt reading level · Generate moral quiz (10+)</div></div>
+      <div class="agent-detail-row"><div class="detail-label">Validates</div><div class="detail-val">Word count 400–600 · Moral presence check · Age tag match</div></div>
+      <div class="agent-detail-row"><div class="detail-label">Output</div><div class="detail-val">Story payload → Safety Agent</div></div>
+    </div>
+
+    <div class="agent-card" style="border-left: 3px solid var(--puzzle)">
+      <div class="agent-card-header">
+        <div class="agent-card-icon">🧩</div>
+        <div><div class="agent-card-name" style="color:var(--puzzle)">Puzzle Selector Agent</div><div class="agent-card-role">Game content · Layer 4</div></div>
+      </div>
+      <div class="agent-detail-row"><div class="detail-label">Logic</div><div class="detail-val">Rotate across 5 games · Weight by least-played</div></div>
+      <div class="agent-detail-row"><div class="detail-label">Difficulty</div><div class="detail-val">Streak ≥ 7 → +1 difficulty · Streak broken → ease back</div></div>
+      <div class="agent-detail-row"><div class="detail-label">Attaches</div><div class="detail-val">Reset timer · Spark reward amounts · World area metadata</div></div>
+      <div class="agent-detail-row"><div class="detail-label">Output</div><div class="detail-val">DailyPuzzle payload → Safety Agent</div></div>
+    </div>
+
+    <div class="agent-card" style="border-left: 3px solid var(--safety)">
+      <div class="agent-card-header">
+        <div class="agent-card-icon">🛡</div>
+        <div><div class="agent-card-name" style="color:var(--safety)">Safety & Moderation Agent</div><div class="agent-card-role">Mandatory gate · Layer 5</div></div>
+      </div>
+      <div class="agent-detail-row"><div class="detail-label">Checks</div><div class="detail-val">Toxicity score · Age-appropriateness · COPPA flags · Readability band</div></div>
+      <div class="agent-detail-row"><div class="detail-label">Threshold</div><div class="detail-val">Score ≥ 0.92 to pass. Below → regenerate (max 3×)</div></div>
+      <div class="agent-detail-row"><div class="detail-label">Fallback</div><div class="detail-val">After 3 failures → serve pre-vetted static content</div></div>
+      <div class="agent-detail-row"><div class="detail-label">Logs</div><div class="detail-val">All failures to moderation audit trail</div></div>
+    </div>
+
+    <div class="agent-card" style="border-left: 3px solid var(--reward)">
+      <div class="agent-card-header">
+        <div class="agent-card-icon">⭐</div>
+        <div><div class="agent-card-name" style="color:var(--reward)">Reward Engine Agent</div><div class="agent-card-role">Incentive logic · Layer 6</div></div>
+      </div>
+      <div class="agent-detail-row"><div class="detail-label">Triggers</div><div class="detail-val">Session end · Read complete · Reaction tap · Day change</div></div>
+      <div class="agent-detail-row"><div class="detail-label">Calculates</div><div class="detail-val">sparkDelta · streakUpdate · badgeConditions · jarFillPercent</div></div>
+      <div class="agent-detail-row"><div class="detail-label">BadgeEval</div><div class="detail-val">Evaluates all BadgeDefinitions against session + cumulative data</div></div>
+      <div class="agent-detail-row"><div class="detail-label">Output</div><div class="detail-val">RewardTransaction + EarnedBadge[] → Data Persistence</div></div>
+    </div>
+
+    <div class="agent-card" style="border-left: 3px solid var(--parent)">
+      <div class="agent-card-header">
+        <div class="agent-card-icon">📊</div>
+        <div><div class="agent-card-name" style="color:var(--parent)">Parent Report Agent</div><div class="agent-card-role">Insight generation · Layer 8</div></div>
+      </div>
+      <div class="agent-detail-row"><div class="detail-label">Fetches</div><div class="detail-val">7-day session log · badge log · streak history · Why/Story reads</div></div>
+      <div class="agent-detail-row"><div class="detail-label">Generates</div><div class="detail-val">BrainReport · SkillRadar · topThinkingStyle · certificate flag</div></div>
+      <div class="agent-detail-row"><div class="detail-label">Outputs</div><div class="detail-val">PDF-ready report · Push notification copy · Leaderboard delta</div></div>
+      <div class="agent-detail-row"><div class="detail-label">Updates</div><div class="detail-val">PersonalisedContext via weekly learning loop (loop ③)</div></div>
+    </div>
+
+    <div class="agent-card" style="border-left: 3px solid var(--data)">
+      <div class="agent-card-header">
+        <div class="agent-card-icon">💾</div>
+        <div><div class="agent-card-name" style="color:var(--data)">Data Persistence Agent</div><div class="agent-card-role">Single API gateway · Layers 2 + 7</div></div>
+      </div>
+      <div class="agent-detail-row"><div class="detail-label">Rule</div><div class="detail-val">ONLY agent that touches the REST API. No other agent calls POST/GET directly.</div></div>
+      <div class="agent-detail-row"><div class="detail-label">Reads</div><div class="detail-val">GET /player · GET /sessions · GET /progress · GET /daily-content</div></div>
+      <div class="agent-detail-row"><div class="detail-label">Writes</div><div class="detail-val">POST /session · POST /rewards · POST /badges · PATCH /player</div></div>
+      <div class="agent-detail-row"><div class="detail-label">Caches</div><div class="detail-val">Daily content in KV store (Redis/Upstash) for instant loads</div></div>
+    </div>
+
+  </div>
+</div>
+
+<!-- Tooltip -->
+<div id="tooltip"></div>
+
+<script>
+const tips = {
+  'user-open':      { title: 'User Opens App', body: 'PWA load event detected. Orchestrator checks: first visit today? Profile exists? Session expired? Routes accordingly.' },
+  'scheduled':      { title: 'Daily Scheduler', body: 'Cron job at 00:00 UTC. Triggers content generation for the next 24h window. Pre-warms cache before any user opens the app.' },
+  'parent-trigger': { title: 'Parent Zone Open', body: 'Parent authenticates via arithmetic PIN. Orchestrator routes directly to Parent Report Agent, bypassing content pipeline.' },
+  'orchestrator':   { title: 'Orchestrator Agent', body: 'The master controller. Classifies incoming intent, spawns sub-agents with parallelism where safe, aggregates results, handles timeouts and retries. Uses a simple intent classifier (LLM or rule-based).' },
+  'dec-intent':     { title: 'Intent Decision', body: 'Three paths: (1) daily_content → full content pipeline, (2) user_action → reward engine triggered, (3) parent_report → report branch. One request, one path.' },
+  'data-fetch':     { title: 'Data Persistence Agent (read)', body: 'All GET calls go through here. Returns PlayerProfile, last 30 sessions, WorldProgress, ThinkingStreak. No other agent hits the REST API directly.' },
+  'personalisation':{ title: 'Personalisation Agent', body: 'Builds a PersonalisedContext object: ageGroup (7-9|10-12|13-15), topicAvoidList (seen in 30 days), difficultyBand, streakState, moodHint. Distributed to all 3 generators.' },
+  'dec-age':        { title: 'Profile Complete?', body: 'Is the PlayerProfile fully set up? (name + ageGroup + avatar). If not → redirect to onboarding flow. This also catches returning users who abandoned onboarding.' },
+  'content-curator':{ title: 'Content Curator Agent', body: 'Checks the KV cache: has today\'s content slot been generated? If yes (warm cache from cron), skip all generators. If no, spawn Why + Story + Puzzle generators in parallel.' },
+  'dec-cache':      { title: 'Content Cached?', body: 'The daily cron at 00:00 pre-generates content. If cache hit → deliver instantly (sub-100ms). If cache miss (new user, first day) → generate on-demand (~2-4s).' },
+  'why-gen':        { title: 'Why Generator Agent', body: 'Selects a WhyTopic from content JSON matching today\'s schedule + ageGroup. LLM adapts text complexity, generates keyTerms tooltips and nextQuestion curiosity prompt. Validates Flesch-Kincaid score.' },
+  'story-gen':      { title: 'Story Generator Agent', body: 'Selects a Story matching theme rotation + ageGroup. LLM generates the moral reveal text, reflectionQuestion, and (for ages 10+) moralQuizOptions. Validates 400–600 word count.' },
+  'puzzle-sel':     { title: 'Puzzle Selector Agent', body: 'Rotates across 5 games weighted by least recently played. Adjusts difficulty: streak ≥ 7 days → increase by 1 band. Attaches reset timer and spark reward metadata.' },
+  'safety':         { title: 'Safety & Moderation Agent', body: 'ALL content passes through here before delivery. Checks: toxicity score, age-appropriateness band, COPPA flag scan (no PII requests), readability match. Threshold: 0.92. Failures trigger regeneration up to 3×, then fallback.' },
+  'dec-safety':     { title: 'Passes Safety?', body: 'Score ≥ 0.92 → proceed to delivery. Score < 0.92 → content returned to originating generator with failure reason. After 3 attempts, pre-vetted static fallback content is served instead.' },
+  'fallback':       { title: 'Fallback Content', body: 'A curated library of pre-vetted, human-reviewed static content. Used only when AI generation fails safety check 3 times. Guarantees the app always has something safe to show.' },
+  'reward':         { title: 'Reward Engine Agent', body: 'Triggered on: session end, read completion, reaction tap, day boundary. Calculates: sparkDelta, streakUpdate, jarFillPercent. Runs BadgeEvaluator against all badge conditions. Outputs RewardTransaction + any EarnedBadge records.' },
+  'delivery':       { title: 'Content Assembler', body: 'Merges the 3 approved content payloads (Why + Story + Puzzle) with PersonalisedContext metadata. Formats the HomeScreenPayload object that the PWA renders directly.' },
+  'data-write':     { title: 'Data Persistence Agent (write)', body: 'All POST/PATCH calls. Writes: PuzzleSession, RewardTransaction, EarnedBadge[], ThinkingStreak update, PlayerProfile patch, daily-content cache. Handles optimistic locking to prevent race conditions.' },
+  'pwa-output':     { title: 'PWA Home Screen', body: 'Receives HomeScreenPayload. Renders 3 cards with Sorbet Candy animations. Shows Brain Jar fill. Fires badge toast notifications. Updates mascot mood based on RewardEngine output.' },
+  'parent-report':  { title: 'Parent Report Agent', body: 'Aggregates 7-day session data. Computes SkillRadar (5 axes: vocab/memory/logic/pattern/grouping). Determines topThinkingStyle. Flags if certificate is eligible. Feeds back to Personalisation Agent.' },
+  'parent-zone':    { title: 'Parent Zone Screen', body: 'Displays: BrainReport with SkillRadar, stories read this week, Why topics explored, streak calendar, earned badges, and printable/shareable Super Thinker certificate if eligible.' },
+};
+
+const svg = document.getElementById('main-svg');
+const tooltip = document.getElementById('tooltip');
+
+svg.querySelectorAll('.svg-node').forEach(node => {
+  const key = node.dataset.tip;
+  if (!key || !tips[key]) return;
+
+  node.addEventListener('mouseenter', (e) => {
+    const d = tips[key];
+    tooltip.innerHTML = `<strong>${d.title}</strong>${d.body}`;
+    tooltip.classList.add('show');
+  });
+
+  node.addEventListener('mousemove', (e) => {
+    let x = e.clientX + 16;
+    let y = e.clientY + 16;
+    if (x + 300 > window.innerWidth) x = e.clientX - 300;
+    tooltip.style.left = x + 'px';
+    tooltip.style.top = y + 'px';
+  });
+
+  node.addEventListener('mouseleave', () => {
+    tooltip.classList.remove('show');
+  });
+});
+</script>
+
+</body>
+</html>
