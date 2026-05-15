@@ -66,4 +66,17 @@ test.describe('Home page', () => {
     await page.goto('/');
     await expect(page).toHaveURL(/\/login/, { timeout: 5000 });
   });
+
+  test('applying a topic filter shows the clear filters button (AC4 visual indicator)', async ({ page }) => {
+    const topicSelect = page.getByRole('combobox', { name: 'Topic:' });
+    await expect(topicSelect).toBeVisible();
+    await topicSelect.selectOption('vocabulary');
+    await expect(page.getByRole('button', { name: /Clear all filters/i })).toBeVisible();
+  });
+
+  test('clearing the topic filter hides the clear button', async ({ page }) => {
+    await page.getByRole('combobox', { name: 'Topic:' }).selectOption('vocabulary');
+    await page.getByRole('button', { name: /Clear all filters/i }).click();
+    await expect(page.getByRole('button', { name: /Clear all filters/i })).not.toBeVisible();
+  });
 });
