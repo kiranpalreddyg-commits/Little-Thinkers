@@ -111,3 +111,75 @@ npm run test:e2e:ui
 - E2E tests use mock API (`NEXT_PUBLIC_USE_MOCK_API=true`) with seed credentials: `james@example.com` / `password123`
 - Playwright requires browser binaries: run `npx playwright install` on first use
 - Vitest 4.x `--localstorage-file` warning is harmless for component tests; the auth API test works around it with a stubbed localStorage
+
+---
+
+## Story 1.3 — Choose Game Difficulty and View Instructions
+
+**Date:** 2026-05-14
+**Status:** DONE
+
+### New Test Files
+
+#### Vitest + React Testing Library (Component / Integration)
+
+- [x] `src/test/components/DifficultySelector.test.tsx` — 7 tests
+  - Renders a radio for every available difficulty
+  - Renders accessible labels for Easy, Medium and Hard
+  - Only renders the difficulties passed in via props
+  - Marks the currently selected difficulty as checked
+  - Calls `onSelect` with the new difficulty when a different option is clicked
+  - Calls `onSelect` when clicking the medium option
+  - Exposes a radiogroup with an accessible label
+
+- [x] `src/test/components/InstructionsPanel.test.tsx` — 8 tests
+  - Renders the game name as a heading
+  - Renders the instructions text
+  - Renders a "How to play" section heading at h2 level
+  - Renders an unchecked acknowledgement checkbox when `acknowledged` is false
+  - Renders a checked acknowledgement checkbox when `acknowledged` is true
+  - Calls `onAcknowledge(true)` when an unchecked checkbox is clicked
+  - Calls `onAcknowledge(false)` when a checked checkbox is clicked again
+  - Checkbox has an accessible label
+
+- [x] `src/test/components/PlayPage.test.tsx` — 12 tests
+  - Shows the game name as the page heading (AC1)
+  - Shows the game description (AC1)
+  - Renders the difficulty selector with the game's available difficulties (AC1)
+  - Renders the instructions panel with how-to-play heading (AC3)
+  - Renders an unchecked acknowledgement checkbox by default (AC4)
+  - Disables the Start Game button when instructions are not acknowledged (AC4)
+  - Enables the Start Game button after the acknowledgement checkbox is checked (AC5)
+  - Selecting a different difficulty updates the checked radio (AC2)
+  - Clicking Start Game navigates to the game route with the selected difficulty (AC6)
+  - Clicking Back navigates to the home screen (AC7)
+  - Redirects unauthenticated users to `/login` (AC8)
+  - (auth guard variant) integrated with `useAuthStore` selectors
+
+### Playwright E2E (Browser — requires `npm run dev`)
+
+- [x] `tests/e2e/play-setup.spec.ts` — 12 tests
+  - Shows the game name as the page heading
+  - Shows all available difficulty options
+  - Shows the instructions panel
+  - Start Game button is disabled before instructions are acknowledged
+  - Acknowledging instructions enables the Start Game button
+  - Selecting a different difficulty updates the checked radio
+  - Clicking Start Game navigates away from the setup screen
+  - Clicking Back returns to the home screen
+  - Unauthenticated access to `/play/word-pop` redirects to login
+  - (plus additional coverage of difficulty radio state and instructions toggle)
+
+### Cumulative Totals
+
+| Suite | Files | Tests |
+|-------|-------|-------|
+| Vitest unit / integration | 15 | 116 |
+| Playwright E2E | 3 | 28 |
+
+**All 116 Vitest tests passing.**
+**All 28 Playwright E2E tests passing.**
+
+### Notes on Race Condition Fix
+
+- Story 1.3 surfaced an `auth-store` race condition (auth state read before hydration completed) which caused `PlayPage` unauthenticated-redirect tests to flake. The developer fix is verified by a stable, repeated green run of the full suite on 2026-05-14.
