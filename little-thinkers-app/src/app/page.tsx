@@ -2,6 +2,7 @@
 
 import { useEffect } from 'react';
 import { useRouter } from 'next/navigation';
+import Link from 'next/link';
 import { useAuth } from '@/hooks/useAuth';
 import { useContent } from '@/hooks/useContent';
 import { GameGrid } from '@/components/home/GameGrid';
@@ -82,6 +83,13 @@ export default function HomePage() {
             </div>
 
             <div className="flex items-center gap-4">
+              <Link
+                href="/settings"
+                aria-label="Open settings"
+                className="inline-flex items-center gap-2 text-sm text-gray-600 hover:text-gray-900 focus:outline-none focus-visible:ring-4 focus-visible:ring-offset-2 focus-visible:ring-gray-400 rounded min-h-[44px] px-2"
+              >
+                <span aria-hidden="true">⚙️</span> Settings
+              </Link>
               <div className="flex items-center gap-2">
                 <div
                   className="w-8 h-8 bg-gradient-to-br from-green-400 to-blue-500 rounded-full flex items-center justify-center text-white text-sm font-bold"
