@@ -6,11 +6,13 @@ import { useAuth } from '@/hooks/useAuth';
 import { useContent } from '@/hooks/useContent';
 import { useGameSession } from '@/hooks/useGameSession';
 import { useRewards } from '@/hooks/useRewards';
+import { useProgression } from '@/hooks/useProgression';
 import { useAuthStore } from '@/lib/stores/authStore';
 import { PauseOverlay } from '@/components/game/PauseOverlay';
 import { BrainJarWidget } from '@/components/rewards/BrainJarWidget';
 import { AnswerFeedback } from '@/components/rewards/AnswerFeedback';
 import { ThoughtSparkAnimation } from '@/components/rewards/ThoughtSparkAnimation';
+import { BadgeNotification } from '@/components/progression/BadgeNotification';
 
 // Spark amounts by difficulty
 const SPARK_AMOUNTS: Record<string, number> = {
@@ -45,6 +47,13 @@ function GameplayPageInner() {
     clearFeedback,
     setAnimating,
   } = useRewards();
+  const {
+    newBadgeNotification,
+    checkAndAwardBadges,
+    updateFromSparks,
+    recordActivity,
+    dismissNotification,
+  } = useProgression();
   const { childProfile } = useAuthStore();
 
   const game = games.find((g) => g.type === gameType);
@@ -54,6 +63,7 @@ function GameplayPageInner() {
     if (typeof window === 'undefined' || !childProfile?.id) return false;
     return sessionStorage.getItem(`lt_bonus_${childProfile.id}_${gameType}`) === 'true';
   });
+  const [totalCorrect, setTotalCorrect] = useState<number>(0);
 
   // Keep local isPaused in sync whenever the store session changes
   useEffect(() => {
@@ -79,6 +89,27 @@ function GameplayPageInner() {
     }
   }, [childProfile?.id, hydrateRewards]);
 
+  // Record activity and check for streak badges
+  useEffect(() => {
+    if (childProfile?.id) {
+      const today = new Date().toISOString().split('T')[0];
+      recordActivity(childProfile.id, today);
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [childProfile?.id]);
+
+  // Keep world map + mascot in sync with the authoritative spark total from
+  // the rewards store. Driving this off brainJar.totalSparks (rather than
+  // recomputing inside the answer handler) avoids a stale/duplicated spark
+  // calculation and also covers the case where rewards hydrate after the
+  // first correct answer.
+  useEffect(() => {
+    if (childProfile?.id && brainJar) {
+      updateFromSparks(childProfile.id, brainJar.totalSparks);
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [childProfile?.id, brainJar?.totalSparks]);
+
   // Award completion bonus when progress reaches 100%
   useEffect(() => {
     if (session?.progress === 100 && !completionBonusAwarded && childProfile?.id) {
@@ -87,8 +118,9 @@ function GameplayPageInner() {
         sessionStorage.setItem(`lt_bonus_${childProfile.id}_${gameType}`, 'true');
       }
       completionBonus(childProfile.id, gameType);
+      checkAndAwardBadges(childProfile.id, { type: 'game-complete' });
     }
-  }, [session?.progress, completionBonusAwarded, childProfile?.id, gameType, completionBonus]);
+  }, [session?.progress, completionBonusAwarded, childProfile?.id, gameType, completionBonus, checkAndAwardBadges]);
 
   // Auth guard
   useEffect(() => {
@@ -133,6 +165,11 @@ function GameplayPageInner() {
     if (isCorrect) {
       if (childProfile?.id) {
         earnSpark(childProfile.id, 'correct-answer', sparkAmount, gameType);
+        const newTotal = totalCorrect + 1;
+        setTotalCorrect(newTotal);
+        // Award badges here; world-map / mascot sync happens in the
+        // brainJar.totalSparks effect once the rewards store updates.
+        checkAndAwardBadges(childProfile.id, { type: 'correct-answer', totalCorrect: newTotal });
       }
       setFeedback({
         type: 'correct',
@@ -193,6 +230,14 @@ function GameplayPageInner() {
             onAnimationEnd={handleAnimationEnd}
           />
         </div>
+
+        {/* Badge notification */}
+        {newBadgeNotification && (
+          <BadgeNotification
+            badge={newBadgeNotification}
+            onDismiss={dismissNotification}
+          />
+        )}
 
         {/* Pause button — hidden when paused */}
         {!isPaused && (
