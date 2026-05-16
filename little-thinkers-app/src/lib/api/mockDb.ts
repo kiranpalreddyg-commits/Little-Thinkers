@@ -1,3 +1,6 @@
+import type { ThoughtSpark, BrainJar } from '@/lib/types/rewards';
+import { BRAIN_JAR_CAPACITY } from '@/lib/types/rewards';
+
 // Mock data for development/testing
 export const MOCK_PARENTS = [
   {
@@ -192,11 +195,14 @@ class MockDatabase {
         users: [
           ...MOCK_PARENTS.map(p => ({ id: p.id, email: p.email, password: p.password, role: p.role })),
         ],
+        rewards: [] as ThoughtSpark[],
       };
       localStorage.setItem(this.storageKey, JSON.stringify(defaultDb));
       return defaultDb;
     }
-    return JSON.parse(stored);
+    const db = JSON.parse(stored);
+    if (!db.rewards) db.rewards = [];
+    return db;
   }
 
   private setDb(db: any) {
@@ -285,6 +291,27 @@ class MockDatabase {
     return newChild;
   }
 
+  getRewards(childId: string): ThoughtSpark[] {
+    const db = this.getDb();
+    return (db.rewards as ThoughtSpark[]).filter((r) => r.childId === childId);
+  }
+
+  addSpark(spark: ThoughtSpark): ThoughtSpark {
+    const db = this.getDb();
+    db.rewards.push(spark);
+    this.setDb(db);
+    return spark;
+  }
+
+  getBrainJar(childId: string): BrainJar {
+    const sparks = this.getRewards(childId);
+    const totalSparks = sparks.reduce((sum, s) => sum + s.amount, 0);
+    const capacity = BRAIN_JAR_CAPACITY;
+    const remainder = totalSparks % capacity;
+    const fillPercent = remainder === 0 && totalSparks > 0 ? 100 : (remainder / capacity) * 100;
+    return { childId, totalSparks, capacity, fillPercent };
+  }
+
   reset() {
     const defaultDb = {
       parents: MOCK_PARENTS,
@@ -292,6 +319,7 @@ class MockDatabase {
       users: [
         ...MOCK_PARENTS.map(p => ({ id: p.id, email: p.email, password: p.password, role: p.role })),
       ],
+      rewards: [] as ThoughtSpark[],
     };
     localStorage.setItem(this.storageKey, JSON.stringify(defaultDb));
   }

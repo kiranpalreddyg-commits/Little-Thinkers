@@ -1,11 +1,23 @@
 'use client';
 
-import { Suspense, useEffect, useState } from 'react';
+import { Suspense, useEffect, useState, useCallback } from 'react';
 import { useRouter, useParams, useSearchParams } from 'next/navigation';
 import { useAuth } from '@/hooks/useAuth';
 import { useContent } from '@/hooks/useContent';
 import { useGameSession } from '@/hooks/useGameSession';
+import { useRewards } from '@/hooks/useRewards';
+import { useAuthStore } from '@/lib/stores/authStore';
 import { PauseOverlay } from '@/components/game/PauseOverlay';
+import { BrainJarWidget } from '@/components/rewards/BrainJarWidget';
+import { AnswerFeedback } from '@/components/rewards/AnswerFeedback';
+import { ThoughtSparkAnimation } from '@/components/rewards/ThoughtSparkAnimation';
+
+// Spark amounts by difficulty
+const SPARK_AMOUNTS: Record<string, number> = {
+  easy: 1,
+  medium: 1,
+  hard: 2,
+};
 
 function GameplayPageInner() {
   const router = useRouter();
@@ -22,29 +34,61 @@ function GameplayPageInner() {
   const { games } = useContent();
   const { session, startSession, pauseSession, resumeSession, clearSession, loadSession } =
     useGameSession();
+  const {
+    brainJar,
+    feedback,
+    isAnimating,
+    hydrateRewards,
+    earnSpark,
+    completionBonus,
+    setFeedback,
+    clearFeedback,
+    setAnimating,
+  } = useRewards();
+  const { childProfile } = useAuthStore();
 
   const game = games.find((g) => g.type === gameType);
 
-  // isPaused mirrors session?.isPaused; local state keeps the UI responsive
-  // when the store is wired but not yet reflected (e.g. optimistic updates).
   const [isPaused, setIsPaused] = useState<boolean>(session?.isPaused ?? false);
+  const [completionBonusAwarded, setCompletionBonusAwarded] = useState<boolean>(() => {
+    if (typeof window === 'undefined' || !childProfile?.id) return false;
+    return sessionStorage.getItem(`lt_bonus_${childProfile.id}_${gameType}`) === 'true';
+  });
 
   // Keep local isPaused in sync whenever the store session changes
   useEffect(() => {
     setIsPaused(session?.isPaused ?? false);
   }, [session?.isPaused]);
 
-  // On mount: resume saved session or start fresh — uses game.type (GameType) not raw string
+  // On mount: resume saved session or start fresh
   useEffect(() => {
     if (!game) return;
     const existing = loadSession(game.type);
     if (existing && existing.difficulty === difficulty) {
-      resumeSession(); // continue from saved state
+      resumeSession();
     } else {
-      startSession(game.type, difficulty); // fresh game
+      startSession(game.type, difficulty);
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [game?.type, difficulty]);
+
+  // Hydrate rewards when child profile is known
+  useEffect(() => {
+    if (childProfile?.id) {
+      hydrateRewards(childProfile.id);
+    }
+  }, [childProfile?.id, hydrateRewards]);
+
+  // Award completion bonus when progress reaches 100%
+  useEffect(() => {
+    if (session?.progress === 100 && !completionBonusAwarded && childProfile?.id) {
+      setCompletionBonusAwarded(true);
+      if (typeof window !== 'undefined') {
+        sessionStorage.setItem(`lt_bonus_${childProfile.id}_${gameType}`, 'true');
+      }
+      completionBonus(childProfile.id, gameType);
+    }
+  }, [session?.progress, completionBonusAwarded, childProfile?.id, gameType, completionBonus]);
 
   // Auth guard
   useEffect(() => {
@@ -52,6 +96,14 @@ function GameplayPageInner() {
       router.push('/login');
     }
   }, [isAuthenticated, authLoading, router]);
+
+  const handleDismissFeedback = useCallback(() => {
+    clearFeedback();
+  }, [clearFeedback]);
+
+  const handleAnimationEnd = useCallback(() => {
+    setAnimating(false);
+  }, [setAnimating]);
 
   if (!isAuthenticated) {
     return null;
@@ -62,13 +114,13 @@ function GameplayPageInner() {
   }
 
   const handlePause = () => {
-    pauseSession(); // persist to store
-    setIsPaused(true); // optimistic UI update
+    pauseSession();
+    setIsPaused(true);
   };
 
   const handleResume = () => {
-    resumeSession(); // persist to store
-    setIsPaused(false); // optimistic UI update
+    resumeSession();
+    setIsPaused(false);
   };
 
   const handleQuit = () => {
@@ -76,17 +128,70 @@ function GameplayPageInner() {
     router.push('/');
   };
 
+  const handleAnswer = (isCorrect: boolean) => {
+    const sparkAmount = SPARK_AMOUNTS[difficulty] ?? 1;
+    if (isCorrect) {
+      if (childProfile?.id) {
+        earnSpark(childProfile.id, 'correct-answer', sparkAmount, gameType);
+      }
+      setFeedback({
+        type: 'correct',
+        message: `Great thinking! +${sparkAmount} Spark ✨`,
+        sparksAwarded: sparkAmount,
+      });
+    } else {
+      setFeedback({
+        type: 'incorrect',
+        message: 'Nice try! Keep going 💪',
+        sparksAwarded: 0,
+      });
+    }
+  };
+
+  const settings = childProfile?.accessibility_settings;
+  const reducedMotion =
+    typeof settings === 'object' && settings !== null && 'reducedMotion' in settings
+      ? (settings as { reducedMotion?: unknown }).reducedMotion === true
+      : false;
+
   return (
     <div className="min-h-screen bg-gradient-to-br from-yellow-50 to-orange-50">
       <main className="max-w-2xl mx-auto px-4 py-8">
-        <h1 className="text-3xl font-bold text-gray-900 mb-6">{game.name}</h1>
+        {/* Header: game title + brain jar */}
+        <div className="flex items-start justify-between mb-6">
+          <h1 className="text-3xl font-bold text-gray-900">{game.name}</h1>
+          <BrainJarWidget brainJar={brainJar} />
+        </div>
 
-        {/* Placeholder game area */}
+        {/* Simulated gameplay area */}
         <div
           data-testid="game-area"
-          className="bg-white rounded-2xl shadow-sm border border-gray-200 p-10 mb-8 text-center text-gray-500 text-lg"
+          className="bg-white rounded-2xl shadow-sm border border-gray-200 p-10 mb-6 text-center"
         >
-          Gameplay coming soon
+          <p className="text-gray-600 mb-6 text-lg">Answer this question: What is 3 + 4?</p>
+          <div className="flex gap-3 justify-center flex-wrap">
+            {['6', '7', '8', '9'].map((opt) => (
+              <button
+                key={opt}
+                onClick={() => handleAnswer(opt === '7')}
+                className="px-6 py-3 bg-blue-500 text-white font-semibold rounded-xl
+                  hover:bg-blue-600 focus:outline-none focus-visible:ring-4 focus-visible:ring-offset-2
+                  focus-visible:ring-blue-400 transition-colors min-h-[44px] min-w-[56px]"
+              >
+                {opt}
+              </button>
+            ))}
+          </div>
+        </div>
+
+        {/* Answer feedback */}
+        <div className="mb-4">
+          <AnswerFeedback feedback={feedback} onDismiss={handleDismissFeedback} />
+          <ThoughtSparkAnimation
+            isAnimating={isAnimating}
+            reducedMotion={reducedMotion}
+            onAnimationEnd={handleAnimationEnd}
+          />
         </div>
 
         {/* Pause button — hidden when paused */}

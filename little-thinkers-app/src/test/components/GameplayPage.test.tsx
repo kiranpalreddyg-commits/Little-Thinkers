@@ -110,9 +110,11 @@ describe('GameplayPage (active play screen)', () => {
     ).toBeInTheDocument();
   });
 
-  it('renders a placeholder game area (AC1)', () => {
+  it('renders the game area with answer buttons (AC1)', () => {
     render(<GameplayPage />);
-    expect(screen.getByText(/Gameplay coming soon/i)).toBeInTheDocument();
+    expect(screen.getByTestId('game-area')).toBeInTheDocument();
+    // Simulated answer buttons are present
+    expect(screen.getByRole('button', { name: '7' })).toBeInTheDocument();
   });
 
   it('renders a "Pause Game" button during active play (AC1)', () => {

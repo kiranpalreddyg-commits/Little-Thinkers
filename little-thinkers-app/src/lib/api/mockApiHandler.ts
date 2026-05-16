@@ -140,6 +140,27 @@ export async function mockApiCall<T>(
       return filtered as T;
     }
 
+    // GET /rewards/brainjar/:childId
+    const brainJarMatch = endpoint.match(/^\/rewards\/brainjar\/(.+)$/);
+    if (brainJarMatch && method === 'GET') {
+      const childId = brainJarMatch[1];
+      return mockDb.getBrainJar(childId) as T;
+    }
+
+    // POST /rewards/sparks
+    if (endpoint === '/rewards/sparks' && method === 'POST') {
+      const { childId, source, amount, gameType } = body;
+      const spark = mockDb.addSpark({
+        id: `spark-${Date.now()}`,
+        childId,
+        source,
+        amount,
+        gameType,
+        earnedAt: new Date().toISOString(),
+      });
+      return spark as T;
+    }
+
     // Unknown endpoint
     throw new Error(`Unknown endpoint: ${method} ${endpoint}`);
   } catch (error) {
