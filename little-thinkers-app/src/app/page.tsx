@@ -2,7 +2,6 @@
 
 import { useEffect } from 'react';
 import { useRouter } from 'next/navigation';
-import Link from 'next/link';
 import { useAuth } from '@/hooks/useAuth';
 import { useContent } from '@/hooks/useContent';
 import { GameGrid } from '@/components/home/GameGrid';
@@ -10,9 +9,11 @@ import { PuzzleOfTheDay } from '@/components/home/PuzzleOfTheDay';
 import { ContentSection } from '@/components/home/ContentSection';
 import { ContentFilterBar } from '@/components/home/ContentFilter';
 import { GameType } from '@/lib/types/content';
+import { DailyChallengeCard } from '@/components/home/DailyChallengeCard';
+import { getDailyGame } from '@/lib/utils/dailyChallenge';
 
 export default function HomePage() {
-  const { isAuthenticated, childProfile, isLoading: authLoading, logout } = useAuth();
+  const { isAuthenticated, childProfile, isLoading: authLoading } = useAuth();
   const router = useRouter();
   const {
     games,
@@ -69,58 +70,7 @@ export default function HomePage() {
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-yellow-50 to-orange-50">
-      {/* Header */}
-      <header className="bg-white shadow-sm border-b border-gray-200">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex justify-between items-center h-16">
-            <div className="flex items-center">
-              <div className="w-10 h-10 bg-gradient-to-br from-blue-600 to-purple-600 rounded-lg flex items-center justify-center mr-3" aria-hidden="true">
-                <svg className="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z" />
-                </svg>
-              </div>
-              <span className="text-xl font-bold text-gray-900">Little Thinkers</span>
-            </div>
-
-            <div className="flex items-center gap-4">
-              <Link
-                href="/settings"
-                aria-label="Open settings"
-                className="inline-flex items-center gap-2 text-sm text-gray-600 hover:text-gray-900 focus:outline-none focus-visible:ring-4 focus-visible:ring-offset-2 focus-visible:ring-gray-400 rounded min-h-[44px] px-2"
-              >
-                <span aria-hidden="true">⚙️</span> Settings
-              </Link>
-              <div className="flex items-center gap-2">
-                <div
-                  className="w-8 h-8 bg-gradient-to-br from-green-400 to-blue-500 rounded-full flex items-center justify-center text-white text-sm font-bold"
-                  aria-label={`${childProfile.name}'s avatar`}
-                >
-                  {childProfile.avatar_url ? (
-                    <img
-                      src={childProfile.avatar_url}
-                      alt=""
-                      className="w-full h-full rounded-full object-cover"
-                    />
-                  ) : (
-                    <span aria-hidden="true">{childProfile.name.charAt(0).toUpperCase()}</span>
-                  )}
-                </div>
-                <span className="text-sm font-medium text-gray-700">{childProfile.name}</span>
-              </div>
-
-              <button
-                onClick={logout}
-                className="text-sm text-gray-500 hover:text-gray-700 px-3 py-1 rounded-md hover:bg-gray-100 transition-colors
-                  focus:outline-none focus-visible:ring-4 focus-visible:ring-offset-1 focus-visible:ring-blue-500 min-h-[44px]"
-              >
-                Sign Out
-              </button>
-            </div>
-          </div>
-        </div>
-      </header>
-
-      <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+      <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 pb-24">
         {/* Welcome */}
         <div className="text-center mb-8">
           <h1 className="text-3xl font-bold text-gray-900 mb-2">
@@ -181,6 +131,9 @@ export default function HomePage() {
             )}
           </div>
           <GameGrid games={games} onGameSelect={handleGameSelect} />
+          <div className="mt-5">
+            <DailyChallengeCard gameType={getDailyGame()} title="Today's Featured Game" />
+          </div>
         </section>
 
         {/* Educational content sections */}

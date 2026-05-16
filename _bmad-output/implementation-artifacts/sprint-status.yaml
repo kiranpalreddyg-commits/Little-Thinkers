@@ -28,7 +28,7 @@
 # - Dev moves story to 'review', then runs code-review (fresh context, different LLM recommended)
 
 generated: 2026-05-11
-last_updated: 2026-05-16 # Story 1.7 done, Epic 1 complete
+last_updated: 2026-05-16 # Sprint Change Proposal approved — Epic 7 + Epic 8 added; priority reordered
 project: little-thinkers
 project_key: NOKEY
 tracking_system: file-system
@@ -44,6 +44,17 @@ development_status:
   1-6-earn-badges-unlock-map-areas-and-evolve-my-mascot: done
   1-7-enable-accessibility-modes-and-persist-preferences: done
   epic-1-retrospective: optional
+  # PRIORITY ORDER (approved 2026-05-16): epic-7 → epic-8 → epic-2 → epic-3 → epic-4 → epic-5 → epic-6
+  epic-7: in-progress
+  7-1-create-design-system-and-ux-specification: done
+  7-2-implement-bottom-tab-navigation-and-app-shell: backlog
+  7-3-redesign-home-screen-and-game-cards: backlog
+  7-4-redesign-gameplay-progress-and-settings-screens: backlog
+  epic-7-retrospective: optional
+  epic-8: backlog
+  8-1-ai-integration-architecture-and-design-plan: backlog
+  8-2-implement-ai-adaptive-difficulty-and-hint-system: backlog
+  epic-8-retrospective: optional
   epic-2: backlog
   2-1-create-parent-account-and-provide-coppa-consent: backlog
   2-2-view-quick-view-dashboard-and-weekly-summary: backlog

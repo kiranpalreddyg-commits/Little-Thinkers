@@ -8,6 +8,7 @@ import { useGameSession } from '@/hooks/useGameSession';
 import { useRewards } from '@/hooks/useRewards';
 import { useProgression } from '@/hooks/useProgression';
 import { useAuthStore } from '@/lib/stores/authStore';
+import { useAppShell } from '@/components/navigation/AppShellContext';
 import { PauseOverlay } from '@/components/game/PauseOverlay';
 import { BrainJarWidget } from '@/components/rewards/BrainJarWidget';
 import { AnswerFeedback } from '@/components/rewards/AnswerFeedback';
@@ -25,6 +26,12 @@ function GameplayPageInner() {
   const router = useRouter();
   const params = useParams();
   const searchParams = useSearchParams();
+  const { setHideTabBar } = useAppShell();
+
+  useEffect(() => {
+    setHideTabBar(true);
+    return () => setHideTabBar(false);
+  }, [setHideTabBar]);
 
   const gameType = params.gameType as string;
   const difficulty = (searchParams.get('difficulty') ?? 'medium') as

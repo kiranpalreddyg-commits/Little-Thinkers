@@ -46,7 +46,7 @@ test.describe('Rewards - Thought Sparks and Brain Jar (Story 1.5)', () => {
   test('Brain Jar shows 0 Sparks on first visit', async ({ page }) => {
     await navigateToGameplay(page);
     await expect(page.getByRole('progressbar')).toHaveAttribute('aria-valuenow', '0');
-    await expect(page.getByText(/0 Sparks/i)).toBeVisible();
+    await expect(page.getByText(/0 Sparks/i).first()).toBeVisible();
   });
 
   // AC1: Correct answer shows positive feedback
@@ -63,7 +63,7 @@ test.describe('Rewards - Thought Sparks and Brain Jar (Story 1.5)', () => {
     await navigateToGameplay(page);
     await page.getByRole('button', { name: '7' }).click();
     // +1 spark at medium difficulty → 1/20 capacity = 5% fill (aria-valuenow is fill percent 0–100)
-    await expect(page.getByText(/1 Sparks/i)).toBeVisible();
+    await expect(page.getByText(/1 Sparks/i).first()).toBeVisible();
     await expect(page.getByRole('progressbar')).toHaveAttribute('aria-valuenow', '5');
   });
 
@@ -74,7 +74,7 @@ test.describe('Rewards - Thought Sparks and Brain Jar (Story 1.5)', () => {
     await expect(page.getByRole('status')).toBeVisible();
     await expect(page.getByText(/Nice try/i)).toBeVisible();
     // Spark count stays at 0
-    await expect(page.getByText(/0 Sparks/i)).toBeVisible();
+    await expect(page.getByText(/0 Sparks/i).first()).toBeVisible();
   });
 
   // AC1: Feedback auto-dismisses (verify it disappears)
@@ -90,12 +90,12 @@ test.describe('Rewards - Thought Sparks and Brain Jar (Story 1.5)', () => {
   test('Brain Jar total persists after page reload', async ({ page }) => {
     await navigateToGameplay(page);
     await page.getByRole('button', { name: '7' }).click();
-    await expect(page.getByText(/1 Sparks/i)).toBeVisible();
+    await expect(page.getByText(/1 Sparks/i).first()).toBeVisible();
     // Reload the page
     await page.reload();
     await page.waitForURL(/\/play\/word-pop\/play/);
     // Spark count should still show 1
-    await expect(page.getByText(/1 Sparks/i)).toBeVisible();
+    await expect(page.getByText(/1 Sparks/i).first()).toBeVisible();
   });
 
   // AC8: Keyboard navigation — answer buttons are reachable and Brain Jar doesn't disrupt focus
