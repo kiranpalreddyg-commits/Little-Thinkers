@@ -1,6 +1,6 @@
 'use client';
 
-import { Suspense, useEffect, useState, useCallback } from 'react';
+import { Suspense, useEffect, useState, useCallback, useRef } from 'react';
 import { useRouter, useParams, useSearchParams } from 'next/navigation';
 import { useAuth } from '@/hooks/useAuth';
 import { useContent } from '@/hooks/useContent';
@@ -14,13 +14,37 @@ import { BrainJarWidget } from '@/components/rewards/BrainJarWidget';
 import { AnswerFeedback } from '@/components/rewards/AnswerFeedback';
 import { ThoughtSparkAnimation } from '@/components/rewards/ThoughtSparkAnimation';
 import { BadgeNotification } from '@/components/progression/BadgeNotification';
+import { STATIC_HINTS } from '@/lib/ai/staticHints';
 
-// Spark amounts by difficulty
 const SPARK_AMOUNTS: Record<string, number> = {
   easy: 1,
   medium: 1,
   hard: 2,
 };
+
+const HINT_DELAY_MS = 10_000;
+const MAX_HINTS_PER_QUESTION = 2;
+
+interface Question {
+  text: string;
+  options: string[];
+  correct: string;
+}
+
+const DIFFICULTY_QUESTIONS: Record<number, Question> = {
+  1: { text: 'What is 1 + 1?',   options: ['1', '2', '3', '4'],   correct: '2'  },
+  2: { text: 'What is 3 + 4?',   options: ['6', '7', '8', '9'],   correct: '7'  },
+  3: { text: 'What is 8 + 7?',   options: ['13', '14', '15', '16'], correct: '15' },
+  4: { text: 'What is 23 + 19?', options: ['40', '41', '42', '43'], correct: '42' },
+  5: { text: 'What is 47 + 35?', options: ['80', '82', '83', '85'], correct: '82' },
+};
+
+function deriveAgeRange(age: number | null | undefined): string {
+  if (!age) return '7-9';
+  if (age <= 9)  return '7-9';
+  if (age <= 12) return '10-12';
+  return '13-15';
+}
 
 function GameplayPageInner() {
   const router = useRouter();
@@ -34,50 +58,69 @@ function GameplayPageInner() {
   }, [setHideTabBar]);
 
   const gameType = params.gameType as string;
-  const difficulty = (searchParams.get('difficulty') ?? 'medium') as
-    | 'easy'
-    | 'medium'
-    | 'hard';
+  const difficulty = (searchParams.get('difficulty') ?? 'medium') as 'easy' | 'medium' | 'hard';
 
   const { isAuthenticated, isLoading: authLoading } = useAuth();
   const { games } = useContent();
-  const { session, startSession, pauseSession, resumeSession, clearSession, loadSession } =
-    useGameSession();
+  const { session, startSession, pauseSession, resumeSession, clearSession, loadSession } = useGameSession();
   const {
-    brainJar,
-    feedback,
-    isAnimating,
-    hydrateRewards,
-    earnSpark,
-    completionBonus,
-    setFeedback,
-    clearFeedback,
-    setAnimating,
+    brainJar, feedback, isAnimating,
+    hydrateRewards, earnSpark, completionBonus,
+    setFeedback, clearFeedback, setAnimating,
   } = useRewards();
   const {
-    newBadgeNotification,
-    checkAndAwardBadges,
-    updateFromSparks,
-    recordActivity,
-    dismissNotification,
+    newBadgeNotification, checkAndAwardBadges, updateFromSparks,
+    recordActivity, dismissNotification, getDifficulty, recordAnswer, recordHintUsed,
   } = useProgression();
   const { childProfile } = useAuthStore();
 
   const game = games.find((g) => g.type === gameType);
 
-  const [isPaused, setIsPaused] = useState<boolean>(session?.isPaused ?? false);
+  const [isPaused, setIsPaused]         = useState<boolean>(session?.isPaused ?? false);
   const [completionBonusAwarded, setCompletionBonusAwarded] = useState<boolean>(() => {
     if (typeof window === 'undefined' || !childProfile?.id) return false;
     return sessionStorage.getItem(`lt_bonus_${childProfile.id}_${gameType}`) === 'true';
   });
   const [totalCorrect, setTotalCorrect] = useState<number>(0);
 
-  // Keep local isPaused in sync whenever the store session changes
-  useEffect(() => {
-    setIsPaused(session?.isPaused ?? false);
-  }, [session?.isPaused]);
+  // AI: hint state
+  const [hintVisible, setHintVisible]   = useState(false);
+  const [hintCount, setHintCount]       = useState(0);
+  const [hintText, setHintText]         = useState('');
+  const [hintLoading, setHintLoading]   = useState(false);
+  const hintTimerRef                    = useRef<ReturnType<typeof setTimeout> | null>(null);
 
-  // On mount: resume saved session or start fresh
+  const currentLevel = getDifficulty(gameType);
+  const currentQuestion = DIFFICULTY_QUESTIONS[currentLevel] ?? DIFFICULTY_QUESTIONS[2];
+
+  function startHintTimer() {
+    if (hintTimerRef.current) clearTimeout(hintTimerRef.current);
+    setHintVisible(false);
+    hintTimerRef.current = setTimeout(() => {
+      if (hintCount < MAX_HINTS_PER_QUESTION) {
+        setHintVisible(true);
+      }
+    }, HINT_DELAY_MS);
+  }
+
+  function resetQuestion() {
+    setHintCount(0);
+    setHintText('');
+    setHintVisible(false);
+    startHintTimer();
+  }
+
+  // Start hint timer on mount and when question changes
+  useEffect(() => {
+    startHintTimer();
+    return () => {
+      if (hintTimerRef.current) clearTimeout(hintTimerRef.current);
+    };
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [currentLevel]);
+
+  useEffect(() => { setIsPaused(session?.isPaused ?? false); }, [session?.isPaused]);
+
   useEffect(() => {
     if (!game) return;
     const existing = loadSession(game.type);
@@ -89,14 +132,10 @@ function GameplayPageInner() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [game?.type, difficulty]);
 
-  // Hydrate rewards when child profile is known
   useEffect(() => {
-    if (childProfile?.id) {
-      hydrateRewards(childProfile.id);
-    }
+    if (childProfile?.id) hydrateRewards(childProfile.id);
   }, [childProfile?.id, hydrateRewards]);
 
-  // Record activity and check for streak badges
   useEffect(() => {
     if (childProfile?.id) {
       const today = new Date().toISOString().split('T')[0];
@@ -105,11 +144,6 @@ function GameplayPageInner() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [childProfile?.id]);
 
-  // Keep world map + mascot in sync with the authoritative spark total from
-  // the rewards store. Driving this off brainJar.totalSparks (rather than
-  // recomputing inside the answer handler) avoids a stale/duplicated spark
-  // calculation and also covers the case where rewards hydrate after the
-  // first correct answer.
   useEffect(() => {
     if (childProfile?.id && brainJar) {
       updateFromSparks(childProfile.id, brainJar.totalSparks);
@@ -117,7 +151,6 @@ function GameplayPageInner() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [childProfile?.id, brainJar?.totalSparks]);
 
-  // Award completion bonus when progress reaches 100%
   useEffect(() => {
     if (session?.progress === 100 && !completionBonusAwarded && childProfile?.id) {
       setCompletionBonusAwarded(true);
@@ -129,68 +162,75 @@ function GameplayPageInner() {
     }
   }, [session?.progress, completionBonusAwarded, childProfile?.id, gameType, completionBonus, checkAndAwardBadges]);
 
-  // Auth guard
   useEffect(() => {
-    if (!authLoading && !isAuthenticated) {
-      router.push('/login');
-    }
+    if (!authLoading && !isAuthenticated) router.push('/login');
   }, [isAuthenticated, authLoading, router]);
 
-  const handleDismissFeedback = useCallback(() => {
-    clearFeedback();
-  }, [clearFeedback]);
+  const handleDismissFeedback = useCallback(() => { clearFeedback(); }, [clearFeedback]);
+  const handleAnimationEnd    = useCallback(() => { setAnimating(false); }, [setAnimating]);
 
-  const handleAnimationEnd = useCallback(() => {
-    setAnimating(false);
-  }, [setAnimating]);
-
-  if (!isAuthenticated) {
-    return null;
-  }
-
-  if (!game) {
-    return null;
-  }
-
-  const handlePause = () => {
-    pauseSession();
-    setIsPaused(true);
-  };
-
-  const handleResume = () => {
-    resumeSession();
-    setIsPaused(false);
-  };
-
-  const handleQuit = () => {
-    clearSession();
-    router.push('/');
-  };
-
-  const handleAnswer = (isCorrect: boolean) => {
+  const handleAnswer = useCallback((isCorrect: boolean) => {
     const sparkAmount = SPARK_AMOUNTS[difficulty] ?? 1;
     if (isCorrect) {
       if (childProfile?.id) {
         earnSpark(childProfile.id, 'correct-answer', sparkAmount, gameType);
         const newTotal = totalCorrect + 1;
         setTotalCorrect(newTotal);
-        // Award badges here; world-map / mascot sync happens in the
-        // brainJar.totalSparks effect once the rewards store updates.
         checkAndAwardBadges(childProfile.id, { type: 'correct-answer', totalCorrect: newTotal });
       }
-      setFeedback({
-        type: 'correct',
-        message: `Great thinking! +${sparkAmount} Spark ✨`,
-        sparksAwarded: sparkAmount,
-      });
+      setFeedback({ type: 'correct', message: `Great thinking! +${sparkAmount} Spark ✨`, sparksAwarded: sparkAmount });
     } else {
-      setFeedback({
-        type: 'incorrect',
-        message: 'Nice try! Keep going 💪',
-        sparksAwarded: 0,
-      });
+      setFeedback({ type: 'incorrect', message: 'Nice try! Keep going 💪', sparksAwarded: 0 });
     }
-  };
+    if (childProfile?.id) {
+      recordAnswer(childProfile.id, gameType, isCorrect);
+    }
+    resetQuestion();
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [difficulty, childProfile?.id, gameType, totalCorrect, earnSpark, checkAndAwardBadges, setFeedback, recordAnswer]);
+
+  const handleHintRequest = useCallback(async () => {
+    if (hintCount >= MAX_HINTS_PER_QUESTION || hintLoading) return;
+    setHintLoading(true);
+    const newCount = hintCount + 1;
+    setHintCount(newCount);
+    if (newCount >= MAX_HINTS_PER_QUESTION) setHintVisible(false);
+
+    recordHintUsed(gameType);
+
+    const ageRange = deriveAgeRange(childProfile?.age);
+    const fallback = (STATIC_HINTS[gameType] ?? STATIC_HINTS['word-pop'])[Math.min(newCount - 1, 1)];
+    try {
+      const res = await fetch('/api/ai/hint', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          childId: childProfile?.id ?? 'anon',
+          gameType,
+          questionContext: currentQuestion.text,
+          hintNumber: newCount,
+          ageRange,
+        }),
+      });
+      if (res.ok) {
+        const data = await res.json() as { hint?: string };
+        setHintText(data.hint || fallback);
+      } else {
+        setHintText(fallback);
+      }
+    } catch {
+      setHintText(fallback);
+    } finally {
+      setHintLoading(false);
+    }
+  }, [hintCount, hintLoading, recordHintUsed, gameType, childProfile?.id, childProfile?.age, currentQuestion.text]);
+
+  if (!isAuthenticated) return null;
+  if (!game) return null;
+
+  const handlePause  = () => { pauseSession(); setIsPaused(true); };
+  const handleResume = () => { resumeSession(); setIsPaused(false); };
+  const handleQuit   = () => { clearSession(); router.push('/'); };
 
   const settings = childProfile?.accessibility_settings;
   const reducedMotion =
@@ -201,23 +241,32 @@ function GameplayPageInner() {
   return (
     <div className="min-h-screen bg-gradient-to-br from-yellow-50 to-orange-50">
       <main className="max-w-2xl mx-auto px-4 py-8">
-        {/* Header: game title + brain jar */}
+        {/* Header */}
         <div className="flex items-start justify-between mb-6">
-          <h1 className="text-3xl font-bold text-gray-900">{game.name}</h1>
+          <div>
+            <h1 className="text-3xl font-bold text-gray-900">{game.name}</h1>
+            <span
+              data-testid="difficulty-display"
+              className="inline-block mt-1 text-sm font-semibold text-[var(--color-brand)] bg-violet-100 rounded-full px-3 py-0.5"
+            >
+              Level {currentLevel}
+            </span>
+          </div>
           <BrainJarWidget brainJar={brainJar} />
         </div>
 
-        {/* Simulated gameplay area */}
+        {/* Game area */}
         <div
           data-testid="game-area"
           className="bg-white rounded-2xl shadow-sm border border-gray-200 p-10 mb-6 text-center"
         >
-          <p className="text-gray-600 mb-6 text-lg">Answer this question: What is 3 + 4?</p>
+          <p className="text-gray-600 mb-6 text-lg">{currentQuestion.text}</p>
           <div className="flex gap-3 justify-center flex-wrap">
-            {['6', '7', '8', '9'].map((opt) => (
+            {currentQuestion.options.map((opt) => (
               <button
                 key={opt}
-                onClick={() => handleAnswer(opt === '7')}
+                type="button"
+                onClick={() => handleAnswer(opt === currentQuestion.correct)}
                 className="px-6 py-3 bg-blue-500 text-white font-semibold rounded-xl
                   hover:bg-blue-600 focus:outline-none focus-visible:ring-4 focus-visible:ring-offset-2
                   focus-visible:ring-blue-400 transition-colors min-h-[44px] min-w-[56px]"
@@ -226,6 +275,33 @@ function GameplayPageInner() {
               </button>
             ))}
           </div>
+
+          {/* Hint button — visible only after 10s with hints remaining */}
+          {hintVisible && hintCount < MAX_HINTS_PER_QUESTION && (
+            <div className="mt-6">
+              <button
+                data-testid="hint-button"
+                type="button"
+                onClick={handleHintRequest}
+                disabled={hintLoading}
+                className="px-5 py-2 bg-amber-100 text-amber-700 font-semibold rounded-full text-sm
+                  hover:bg-amber-200 transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-amber-400
+                  disabled:opacity-50 disabled:cursor-not-allowed"
+              >
+                {hintLoading ? 'Thinking…' : 'Need a hint? 💡'}
+              </button>
+            </div>
+          )}
+
+          {/* Hint text */}
+          {hintText && (
+            <p
+              data-testid="hint-text"
+              className="mt-4 text-amber-700 bg-amber-50 rounded-xl px-4 py-3 text-sm font-medium"
+            >
+              💡 {hintText}
+            </p>
+          )}
         </div>
 
         {/* Answer feedback */}
@@ -240,15 +316,13 @@ function GameplayPageInner() {
 
         {/* Badge notification */}
         {newBadgeNotification && (
-          <BadgeNotification
-            badge={newBadgeNotification}
-            onDismiss={dismissNotification}
-          />
+          <BadgeNotification badge={newBadgeNotification} onDismiss={dismissNotification} />
         )}
 
-        {/* Pause button — hidden when paused */}
+        {/* Pause button */}
         {!isPaused && (
           <button
+            type="button"
             onClick={handlePause}
             aria-label="Pause Game"
             className="px-6 py-3 bg-yellow-500 text-white font-semibold rounded-xl
@@ -261,11 +335,7 @@ function GameplayPageInner() {
 
         {/* Pause overlay */}
         {isPaused && (
-          <PauseOverlay
-            gameName={game.name}
-            onResume={handleResume}
-            onQuit={handleQuit}
-          />
+          <PauseOverlay gameName={game.name} onResume={handleResume} onQuit={handleQuit} />
         )}
       </main>
     </div>
@@ -274,13 +344,7 @@ function GameplayPageInner() {
 
 export default function GameplayPage() {
   return (
-    <Suspense
-      fallback={
-        <div className="min-h-screen flex items-center justify-center">
-          <span className="sr-only">Loading…</span>
-        </div>
-      }
-    >
+    <Suspense fallback={<div className="min-h-screen flex items-center justify-center"><span className="sr-only">Loading…</span></div>}>
       <GameplayPageInner />
     </Suspense>
   );

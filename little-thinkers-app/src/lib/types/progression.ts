@@ -1,3 +1,8 @@
+export const GAME_TYPES = ['word-pop', 'connection-quest', 'memory-flip', 'pattern-builder', 'grid-logic'] as const;
+export type GameTypeKey = typeof GAME_TYPES[number];
+
+export type DifficultyLevel = 1 | 2 | 3 | 4 | 5;
+
 export const BADGE_TYPES = ['first-correct', 'ten-correct', 'game-complete', 'five-day-streak', 'explorer'] as const;
 export type BadgeType = typeof BADGE_TYPES[number];
 

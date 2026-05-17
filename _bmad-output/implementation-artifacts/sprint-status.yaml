@@ -53,7 +53,7 @@ development_status:
   epic-7-retrospective: optional
   epic-8: in-progress
   8-1-ai-integration-architecture-and-design-plan: done
-  8-2-implement-ai-adaptive-difficulty-and-hint-system: backlog
+  8-2-implement-ai-adaptive-difficulty-and-hint-system: done
   epic-8-retrospective: optional
   epic-2: backlog
   2-1-create-parent-account-and-provide-coppa-consent: backlog

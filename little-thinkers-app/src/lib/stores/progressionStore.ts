@@ -1,6 +1,6 @@
 import { create } from 'zustand';
-import type { Badge, BadgeEvent, MascotState, ThinkingStreak, WorldMapArea, BadgeType } from '@/lib/types/progression';
-import { BADGE_META, WORLD_AREAS } from '@/lib/types/progression';
+import type { Badge, BadgeEvent, MascotState, ThinkingStreak, WorldMapArea, BadgeType, DifficultyLevel, GameTypeKey } from '@/lib/types/progression';
+import { BADGE_META, WORLD_AREAS, GAME_TYPES } from '@/lib/types/progression';
 
 const progressionKey = (childId: string) => `lt_progression_${childId}`;
 const streakKey = (childId: string) => `lt_streak_${childId}`;
@@ -22,18 +22,36 @@ interface StoredProgression {
   mascot: { level: number; experience: number };
 }
 
+function defaultDifficulty(): Record<GameTypeKey, DifficultyLevel> {
+  return Object.fromEntries(GAME_TYPES.map((g) => [g, 2])) as Record<GameTypeKey, DifficultyLevel>;
+}
+
+function defaultAnswerWindow(): Record<GameTypeKey, boolean[]> {
+  return Object.fromEntries(GAME_TYPES.map((g) => [g, []])) as Record<GameTypeKey, boolean[]>;
+}
+
+function defaultHintsUsed(): Record<GameTypeKey, number> {
+  return Object.fromEntries(GAME_TYPES.map((g) => [g, 0])) as Record<GameTypeKey, number>;
+}
+
 interface ProgressionState {
   badges: Badge[];
   worldAreas: WorldMapArea[];
   mascot: MascotState | null;
   streak: ThinkingStreak | null;
   newBadgeNotification: Badge | null;
+  gameDifficulty: Record<GameTypeKey, DifficultyLevel>;
+  answerWindow: Record<GameTypeKey, boolean[]>;
+  hintsUsed: Record<GameTypeKey, number>;
 
   hydrateProgression: (childId: string) => void;
   updateFromSparks: (childId: string, totalSparks: number) => Badge[];
   checkAndAwardBadges: (childId: string, event: BadgeEvent) => Badge[];
   recordActivity: (childId: string, today: string) => void;
   dismissNotification: () => void;
+  recordAnswer: (childId: string, gameType: string, correct: boolean) => void;
+  recordHintUsed: (gameType: string) => void;
+  getDifficulty: (gameType: string) => DifficultyLevel;
 }
 
 /**
@@ -113,12 +131,37 @@ function initDefaultMascot(childId: string): MascotState {
   };
 }
 
+const aiKey = (childId: string) => `lt_ai_${childId}`;
+
+function readStoredAI(childId: string): { gameDifficulty: Record<GameTypeKey, DifficultyLevel>; hintsUsed: Record<GameTypeKey, number> } | null {
+  if (typeof window === 'undefined') return null;
+  try {
+    const raw = localStorage.getItem(aiKey(childId));
+    if (!raw) return null;
+    return JSON.parse(raw);
+  } catch {
+    return null;
+  }
+}
+
+function writeStoredAI(childId: string, gameDifficulty: Record<GameTypeKey, DifficultyLevel>, hintsUsed: Record<GameTypeKey, number>): void {
+  if (typeof window === 'undefined') return;
+  try {
+    localStorage.setItem(aiKey(childId), JSON.stringify({ gameDifficulty, hintsUsed }));
+  } catch {
+    // Safari private mode or quota exceeded — continue without persistence
+  }
+}
+
 export const useProgressionStore = create<ProgressionState>((set, get) => ({
   badges: [],
   worldAreas: WORLD_AREAS,
   mascot: null,
   streak: null,
   newBadgeNotification: null,
+  gameDifficulty: defaultDifficulty(),
+  answerWindow: defaultAnswerWindow(),
+  hintsUsed: defaultHintsUsed(),
 
   hydrateProgression: (childId: string) => {
     const stored = readStoredProgression(childId);
@@ -290,5 +333,40 @@ export const useProgressionStore = create<ProgressionState>((set, get) => ({
 
   dismissNotification: () => {
     set({ newBadgeNotification: null });
+  },
+
+  recordAnswer: (childId: string, gameType: string, correct: boolean) => {
+    const state = get();
+    const key = gameType as GameTypeKey;
+    const prevWindow = state.answerWindow[key] ?? [];
+    const newWindow = [...prevWindow, correct].slice(-10);
+
+    const last3 = newWindow.slice(-3);
+    let newLevel = state.gameDifficulty[key] ?? 2;
+
+    if (last3.length === 3) {
+      if (last3.every(Boolean)) {
+        newLevel = Math.min(5, newLevel + 1) as DifficultyLevel;
+      } else if (last3.every((v) => !v)) {
+        newLevel = Math.max(1, newLevel - 1) as DifficultyLevel;
+      }
+    }
+
+    const newDifficulty = { ...state.gameDifficulty, [key]: newLevel };
+    const newAnswerWindow = { ...state.answerWindow, [key]: newWindow };
+
+    writeStoredAI(childId, newDifficulty, state.hintsUsed);
+    set({ gameDifficulty: newDifficulty, answerWindow: newAnswerWindow });
+  },
+
+  recordHintUsed: (gameType: string) => {
+    const state = get();
+    const key = gameType as GameTypeKey;
+    const newHintsUsed = { ...state.hintsUsed, [key]: (state.hintsUsed[key] ?? 0) + 1 };
+    set({ hintsUsed: newHintsUsed });
+  },
+
+  getDifficulty: (gameType: string): DifficultyLevel => {
+    return (get().gameDifficulty[gameType as GameTypeKey] ?? 2) as DifficultyLevel;
   },
 }));
