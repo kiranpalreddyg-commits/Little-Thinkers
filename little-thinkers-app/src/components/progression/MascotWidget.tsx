@@ -6,6 +6,12 @@ interface MascotWidgetProps {
   mascot: MascotState | null;
 }
 
+const ACCESSORY_EMOJI: Record<string, string> = {
+  glasses: '🕶️',
+  hat: '🎩',
+  cape: '🦸',
+};
+
 function getAccessoriesForLevel(level: number): string[] {
   if (level >= 4) return ['glasses', 'hat', 'cape'];
   if (level === 3) return ['glasses', 'hat'];
@@ -19,28 +25,43 @@ export function MascotWidget({ mascot }: MascotWidgetProps) {
   }
 
   const accessories = getAccessoriesForLevel(mascot.level);
-  const accessoryCount = accessories.length;
-  const accessoryLabel = accessoryCount === 0 ? 'no' : String(accessoryCount);
+  const accessoryLabel = accessories.length === 0 ? 'no' : String(accessories.length);
   const ariaLabel = `Mascot: Level ${mascot.level} Thinker with ${accessoryLabel} accessories`;
 
   return (
     <div
       role="img"
       aria-label={ariaLabel}
-      className="flex flex-col items-center gap-3 bg-white rounded-2xl shadow-sm border border-purple-100 px-6 py-5 w-fit"
+      data-testid="mascot-widget"
+      className="flex flex-col items-center gap-3 bg-gradient-to-br from-violet-100 to-emerald-50 rounded-2xl shadow-lg shadow-violet-500/40 px-8 py-8 w-fit min-w-[160px] min-h-[220px]"
+      style={{ animation: 'mascotFloat 3s ease-in-out infinite' }}
     >
-      <span className="text-5xl" aria-hidden="true">🧠</span>
+      <div className="relative">
+        <span className="text-8xl" aria-hidden="true">🧠</span>
+        {accessories.length > 0 && (
+          <span className="absolute -top-3 -right-3 text-3xl" aria-hidden="true">
+            {ACCESSORY_EMOJI[accessories[0]]}
+          </span>
+        )}
+      </div>
 
-      <p className="text-lg font-bold text-purple-700">
+      <p className="text-lg font-black text-[var(--color-brand)]">
         Level {mascot.level} Thinker
       </p>
 
       {accessories.length > 0 ? (
-        <p className="text-sm text-gray-600">
-          Accessories: {accessories.join(', ')}
-        </p>
+        <div className="flex flex-wrap gap-1 items-center justify-center">
+          {accessories.map((a) => (
+            <span key={a} className="text-xs bg-white/60 rounded-full px-2 py-0.5 font-semibold text-violet-700 flex items-center gap-0.5">
+              <span aria-hidden="true">{ACCESSORY_EMOJI[a]}</span>
+              {a}
+            </span>
+          ))}
+        </div>
       ) : (
-        <p className="text-sm text-gray-400 italic">No accessories yet</p>
+        <p className="text-sm text-[var(--color-brand)] font-semibold">
+          Level up to unlock gear! ✨
+        </p>
       )}
     </div>
   );

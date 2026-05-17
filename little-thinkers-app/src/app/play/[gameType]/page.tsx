@@ -10,6 +10,22 @@ import { DifficultySelector } from '@/components/play/DifficultySelector';
 import { InstructionsPanel } from '@/components/play/InstructionsPanel';
 import { ResumePrompt } from '@/components/game/ResumePrompt';
 
+const GAME_ICONS: Record<string, string> = {
+  'word-pop': '🔤',
+  'connection-quest': '🔗',
+  'memory-flip': '🃏',
+  'pattern-builder': '🧩',
+  'grid-logic': '⊞',
+};
+
+const GAME_GRADIENTS: Record<string, string> = {
+  'word-pop':         'from-blue-400 via-blue-500 to-blue-700',
+  'connection-quest': 'from-emerald-400 via-emerald-500 to-emerald-700',
+  'memory-flip':      'from-violet-400 via-violet-500 to-violet-700',
+  'pattern-builder':  'from-amber-300 via-amber-400 to-amber-600',
+  'grid-logic':       'from-rose-400 via-rose-500 to-rose-700',
+};
+
 const GAME_INSTRUCTIONS: Record<string, string> = {
   'word-pop':
     'Guess the hidden word by selecting letters one at a time. You have limited attempts, so choose wisely!',
@@ -26,7 +42,8 @@ const GAME_INSTRUCTIONS: Record<string, string> = {
 export default function PlayPage() {
   const router = useRouter();
   const params = useParams();
-  const gameType = params.gameType as string;
+  const rawGameType = params.gameType;
+  const gameType = Array.isArray(rawGameType) ? rawGameType[0] : (rawGameType ?? '');
 
   const { isAuthenticated, isLoading: authLoading } = useAuth();
   const { games, isLoading: contentLoading } = useContent();
@@ -37,20 +54,17 @@ export default function PlayPage() {
   const [selected, setSelected] = useState<Difficulty>('easy');
   const [acknowledged, setAcknowledged] = useState(false);
 
-  // Load any saved session for this game on mount
   useEffect(() => {
     if (!game) return;
     hydrateSession(game.type);
   }, [game?.type, hydrateSession]);
 
-  // Sync selected to the game's first difficulty once the game is loaded
   useEffect(() => {
     if (game && game.difficulties.length > 0) {
       setSelected(game.difficulties[0]);
     }
   }, [game]);
 
-  // Auth guard: redirect to /login if not authenticated
   useEffect(() => {
     if (!authLoading && !isAuthenticated) {
       router.push('/login');
@@ -65,7 +79,7 @@ export default function PlayPage() {
         aria-busy="true"
       >
         <div
-          className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600"
+          className="animate-spin rounded-full h-12 w-12 border-b-2 border-[var(--color-brand)]"
           role="status"
         >
           <span className="sr-only">Loading…</span>
@@ -82,21 +96,25 @@ export default function PlayPage() {
     return (
       <div className="min-h-screen flex items-center justify-center p-4">
         <div className="bg-white rounded-2xl shadow-sm border border-gray-200 p-10 max-w-md w-full text-center">
-          <p className="text-gray-500 mb-6">Game not found.</p>
+          <p className="text-5xl mb-4" aria-hidden="true">🤔</p>
+          <p className="text-gray-700 font-semibold mb-2">Oops, we couldn&apos;t find that game!</p>
+          <p className="text-gray-500 text-sm mb-6">Let&apos;s head home and pick one.</p>
           <button
+            type="button"
             onClick={() => router.push('/')}
             aria-label="Back to home"
-            className="px-6 py-3 bg-blue-600 text-white font-semibold rounded-xl
-              hover:bg-blue-700 focus:outline-none focus-visible:ring-4 focus-visible:ring-offset-2 focus-visible:ring-blue-500
+            className="px-6 py-3 bg-[var(--color-brand)] text-white font-black rounded-2xl
+              hover:bg-[var(--color-brand-dark)] focus:outline-none focus-visible:ring-4 focus-visible:ring-offset-2 focus-visible:ring-[var(--color-brand)]
               transition-colors min-h-[44px]"
           >
-            Back
+            Take me home 🏠
           </button>
         </div>
       </div>
     );
   }
 
+  const gradient = GAME_GRADIENTS[gameType] ?? 'from-violet-400 via-violet-500 to-violet-700';
   const instructions =
     GAME_INSTRUCTIONS[gameType] ?? 'Follow the on-screen prompts to play this game.';
 
@@ -104,10 +122,9 @@ export default function PlayPage() {
     router.push(`/play/${game.type}/play?difficulty=${selected}`);
   };
 
-  // If there is a saved session for this game, show the resume prompt
   if (session && session.gameType === game.type) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-yellow-50 to-orange-50 flex items-center justify-center">
+      <div className={`min-h-screen bg-gradient-to-br ${gradient}`}>
         <ResumePrompt
           session={session}
           onResume={() =>
@@ -120,11 +137,20 @@ export default function PlayPage() {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-yellow-50 to-orange-50">
-      <main className="max-w-2xl mx-auto px-4 py-8">
-        {/* Page heading */}
-        <h1 className="text-3xl font-bold text-gray-900 mb-2">{game.name}</h1>
-        <p className="text-gray-600 mb-8">{game.description}</p>
+    <div className={`min-h-screen bg-gradient-to-br ${gradient}`}>
+      <div data-testid="game-detail-card" className="max-w-2xl mx-auto px-4 pt-8 pb-24">
+        {/* Large game icon */}
+        <div
+          data-testid="game-icon"
+          aria-hidden="true"
+          className="w-24 h-24 text-7xl flex items-center justify-center mx-auto mb-4"
+        >
+          {GAME_ICONS[gameType] ?? '🎮'}
+        </div>
+
+        {/* Page heading — centered, white on gradient */}
+        <h1 className="text-3xl font-black text-white text-center mb-2">{game.name}</h1>
+        <p className="text-white/80 text-center mb-8">{game.description}</p>
 
         {/* Difficulty selector */}
         <div className="mb-8">
@@ -148,30 +174,32 @@ export default function PlayPage() {
         {/* Action buttons */}
         <div className="flex gap-4">
           <button
+            type="button"
             onClick={() => router.push('/')}
             aria-label="Back to home"
-            className="px-6 py-3 bg-white border-2 border-gray-300 text-gray-700 font-semibold rounded-xl
-              hover:border-gray-400 hover:bg-gray-50
-              focus:outline-none focus-visible:ring-4 focus-visible:ring-offset-2 focus-visible:ring-blue-500
+            className="px-6 py-3 bg-white/20 border-2 border-white/40 text-white font-black rounded-2xl
+              hover:bg-white/30 hover:border-white/60
+              focus:outline-none focus-visible:ring-4 focus-visible:ring-offset-2 focus-visible:ring-white/50
               transition-colors min-h-[44px]"
           >
             Back
           </button>
 
           <button
+            type="button"
             onClick={handleStartGame}
+            aria-disabled={!acknowledged}
+            aria-describedby={!acknowledged ? 'start-hint' : undefined}
             disabled={!acknowledged}
-            aria-label="Start Game"
-            className="flex-1 px-6 py-3 bg-blue-600 text-white font-semibold rounded-xl
-              hover:bg-blue-700
-              focus:outline-none focus-visible:ring-4 focus-visible:ring-offset-2 focus-visible:ring-blue-500
-              transition-colors min-h-[44px]
-              disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:bg-blue-600"
+            className="flex-1 px-6 py-4 bg-white text-[var(--color-brand)] font-black rounded-2xl text-lg shadow-lg hover:shadow-xl hover:scale-[1.02] active:scale-[0.98] transition-[transform,box-shadow] duration-200 will-change-transform min-h-[56px] disabled:opacity-50 disabled:cursor-not-allowed disabled:pointer-events-none disabled:shadow-none disabled:hover:scale-100"
           >
             Start Game
           </button>
         </div>
-      </main>
+        {!acknowledged && (
+          <p id="start-hint" className="sr-only">Read and acknowledge the instructions above to start.</p>
+        )}
+      </div>
     </div>
   );
 }

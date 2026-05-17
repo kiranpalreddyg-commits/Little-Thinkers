@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useRef } from 'react';
+import { useEffect, useRef, useId } from 'react';
 import type { Badge } from '@/lib/types/progression';
 
 interface BadgeNotificationProps {
@@ -8,20 +8,26 @@ interface BadgeNotificationProps {
   onDismiss: () => void;
 }
 
-const TITLE_ID = 'badge-notif-title';
 const AUTO_DISMISS_MS = 4000;
 
 export function BadgeNotification({ badge, onDismiss }: BadgeNotificationProps) {
   const dismissButtonRef = useRef<HTMLButtonElement>(null);
+  const prevFocusRef = useRef<HTMLElement | null>(null);
+  const titleId = useId();
+
+  // Save previously focused element; restore it when the dialog closes
+  useEffect(() => {
+    prevFocusRef.current = document.activeElement as HTMLElement;
+    return () => {
+      prevFocusRef.current?.focus();
+    };
+  }, []);
 
   useEffect(() => {
     const timer = setTimeout(onDismiss, AUTO_DISMISS_MS);
     return () => clearTimeout(timer);
   }, [onDismiss]);
 
-  // Focus trap + Escape: the dialog is aria-modal, so keyboard focus must not
-  // escape behind the scrim. There is exactly one focusable element (the
-  // dismiss button), so any Tab/Shift+Tab simply keeps focus on it.
   function handleKeyDown(e: React.KeyboardEvent<HTMLDivElement>) {
     if (e.key === 'Escape') {
       e.preventDefault();
@@ -36,35 +42,37 @@ export function BadgeNotification({ badge, onDismiss }: BadgeNotificationProps) 
 
   return (
     <div
-      className="fixed inset-0 bg-black/50 flex items-center justify-center z-50"
+      data-testid="badge-notification"
+      className="fixed inset-0 bg-gradient-to-br from-yellow-400 via-amber-400 to-orange-500 flex items-center justify-center z-50"
       role="dialog"
       aria-modal="true"
-      aria-labelledby={TITLE_ID}
+      aria-labelledby={titleId}
       onKeyDown={handleKeyDown}
     >
       <div
-        className="bg-white rounded-2xl shadow-xl px-8 py-8 max-w-sm w-full mx-4 flex flex-col items-center gap-4 text-center"
-        aria-live="assertive"
+        className="flex flex-col items-center gap-4 text-center px-8 py-12 max-w-sm w-full"
+        style={{ animation: 'badgePopIn 350ms cubic-bezier(0.22, 1, 0.36, 1) both' }}
       >
-        <p className="text-lg font-medium text-gray-700">
-          You earned a badge! <span aria-hidden="true">🎉</span>
+        <div aria-hidden="true" className="text-8xl">🎉</div>
+
+        <p className="text-white font-black text-xl">
+          You earned a badge!
         </p>
 
-        <h2 id={TITLE_ID} className="text-2xl font-bold text-yellow-600">
+        <h2 id={titleId} className="text-white font-black text-3xl">
           {badge.name}
         </h2>
 
-        <p className="text-gray-600">{badge.description}</p>
+        <p className="text-white/90">{badge.description}</p>
 
         <button
           ref={dismissButtonRef}
           type="button"
-          // eslint-disable-next-line jsx-a11y/no-autofocus
           autoFocus
           onClick={onDismiss}
-          className="mt-2 min-h-[44px] min-w-[44px] px-6 py-2 bg-yellow-400 hover:bg-yellow-500 active:bg-yellow-600 text-gray-900 font-semibold rounded-full transition-colors focus:outline-none focus-visible:ring-4 focus-visible:ring-offset-2 focus-visible:ring-yellow-400"
+          className="mt-2 min-h-[44px] min-w-[44px] px-8 py-3 bg-white text-[var(--color-brand)] font-black rounded-full shadow-lg transition-all duration-150 hover:scale-[1.04] active:scale-[0.97] focus:outline-none focus-visible:ring-4 focus-visible:ring-offset-2 focus-visible:ring-yellow-300"
         >
-          Got it!
+          Got it! 🎉
         </button>
       </div>
     </div>

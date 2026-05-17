@@ -45,13 +45,13 @@ describe('AccessibilitySettings', () => {
       screen.getByRole('group', { name: /Gameplay Mode/i }),
     ).toBeInTheDocument();
     expect(
-      screen.getByRole('checkbox', { name: /Reduced Motion/i }),
+      screen.getByRole('switch', { name: /Reduced Motion/i }),
     ).toBeInTheDocument();
     expect(
-      screen.getByRole('checkbox', { name: /Color-Blind Mode/i }),
+      screen.getByRole('switch', { name: /Color-Blind Mode/i }),
     ).toBeInTheDocument();
     expect(
-      screen.getByRole('checkbox', { name: /Dyslexia-Friendly Font/i }),
+      screen.getByRole('switch', { name: /Dyslexia-Friendly Font/i }),
     ).toBeInTheDocument();
     expect(
       screen.getByRole('group', { name: /Text Size/i }),
@@ -131,25 +131,25 @@ describe('AccessibilitySettings', () => {
     ).toBeChecked();
   });
 
-  it('Reduced Motion checkbox starts unchecked (AC2)', () => {
+  it('Reduced Motion switch starts off (AC2)', () => {
     render(<AccessibilitySettings childId={CHILD_ID} />);
     expect(
-      screen.getByRole('checkbox', { name: /Reduced Motion/i }),
-    ).not.toBeChecked();
+      screen.getByRole('switch', { name: /Reduced Motion/i }),
+    ).toHaveAttribute('aria-checked', 'false');
   });
 
-  it('Color-Blind Mode checkbox starts unchecked (AC3)', () => {
+  it('Color-Blind Mode switch starts off (AC3)', () => {
     render(<AccessibilitySettings childId={CHILD_ID} />);
     expect(
-      screen.getByRole('checkbox', { name: /Color-Blind Mode/i }),
-    ).not.toBeChecked();
+      screen.getByRole('switch', { name: /Color-Blind Mode/i }),
+    ).toHaveAttribute('aria-checked', 'false');
   });
 
-  it('Dyslexia-Friendly Font checkbox starts unchecked (AC4)', () => {
+  it('Dyslexia-Friendly Font switch starts off (AC4)', () => {
     render(<AccessibilitySettings childId={CHILD_ID} />);
     expect(
-      screen.getByRole('checkbox', { name: /Dyslexia-Friendly Font/i }),
-    ).not.toBeChecked();
+      screen.getByRole('switch', { name: /Dyslexia-Friendly Font/i }),
+    ).toHaveAttribute('aria-checked', 'false');
   });
 
   it('clicking the Chill gameplay radio calls updateSetting with gameplayMode/chill (AC1)', () => {
@@ -163,10 +163,10 @@ describe('AccessibilitySettings', () => {
     );
   });
 
-  it('clicking the Reduced Motion checkbox toggles it via updateSetting (AC2)', () => {
+  it('clicking the Reduced Motion switch toggles it via updateSetting (AC2)', () => {
     render(<AccessibilitySettings childId={CHILD_ID} />);
     fireEvent.click(
-      screen.getByRole('checkbox', { name: /Reduced Motion/i }),
+      screen.getByRole('switch', { name: /Reduced Motion/i }),
     );
     expect(updateSetting).toHaveBeenCalledWith(
       CHILD_ID,
@@ -234,7 +234,7 @@ describe('AccessibilitySettings', () => {
       within(textSize).getByRole('radio', { name: /Large/i }),
     ).toBeChecked();
     expect(
-      screen.getByRole('checkbox', { name: /Reduced Motion/i }),
-    ).toBeChecked();
+      screen.getByRole('switch', { name: /Reduced Motion/i }),
+    ).toHaveAttribute('aria-checked', 'true');
   });
 });

@@ -29,33 +29,35 @@ export default function MyProgressPage() {
   if (!isAuthenticated) return null;
 
   return (
-    <main className="min-h-screen bg-gradient-to-br from-blue-50 to-purple-50">
-      <div className="max-w-3xl mx-auto px-4 py-8 space-y-10">
-        <h1 className="text-3xl font-bold text-gray-900">My Progress</h1>
+    <div
+      data-testid="progress-page"
+      className="min-h-screen bg-gradient-to-b from-violet-100 via-emerald-50 to-amber-50"
+      style={{ animation: 'fadeSlideUp 300ms cubic-bezier(0.22, 1, 0.36, 1) both' }}
+    >
+      <div className="max-w-3xl mx-auto px-4 py-8 space-y-10 pb-24">
+        <h1 className="text-4xl font-black text-gray-900">My Adventures!</h1>
+
+        {/* World Map — full width, first for visual dominance */}
+        <WorldMap areas={worldAreas} />
 
         {/* Mascot + Streak row */}
-        <section className="flex flex-wrap items-start gap-8">
+        <section aria-labelledby="mascot-heading" className="flex flex-wrap items-start gap-8">
           <div>
-            <h2 className="text-xl font-semibold text-gray-700 mb-3">Your Mascot</h2>
+            <h2 id="mascot-heading" className="text-2xl font-black text-gray-700 mb-3">Your Mascot 🧠</h2>
             <MascotWidget mascot={mascot} />
           </div>
           <div>
-            <h2 className="text-xl font-semibold text-gray-700 mb-3">Your Streak</h2>
+            <h2 className="text-2xl font-black text-gray-700 mb-3">Your Hot Streak 🔥</h2>
             <StreakDisplay streak={streak} />
           </div>
         </section>
 
-        {/* World Map */}
-        <section>
-          <WorldMap areas={worldAreas} />
-        </section>
-
         {/* Badges */}
-        <section>
-          <h2 className="text-xl font-semibold text-gray-700 mb-3">Your Badges</h2>
+        <section aria-labelledby="badges-heading">
+          <h2 id="badges-heading" className="text-2xl font-black text-gray-700 mb-3">Your Trophy Case 🏆</h2>
           <BadgeList badges={badges} />
         </section>
       </div>
-    </main>
+    </div>
   );
 }

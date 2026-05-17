@@ -74,30 +74,30 @@ test.describe('Settings - Accessibility Modes and Preferences (Story 1.7)', () =
     await expect(reloadedChillRadio).toBeChecked();
   });
 
-  // Test 5: Reduced Motion checkbox is unchecked by default
-  test('Reduced Motion checkbox is unchecked by default', async ({ page }) => {
+  // Test 5: Reduced Motion toggle is off by default
+  test('Reduced Motion toggle is off by default', async ({ page }) => {
     await page.goto('/settings');
-    const reducedMotionCheckbox = page.getByRole('checkbox', { name: /Reduced Motion/i });
-    await expect(reducedMotionCheckbox).not.toBeChecked();
+    const reducedMotionSwitch = page.getByRole('switch', { name: /Reduced Motion/i });
+    await expect(reducedMotionSwitch).toHaveAttribute('aria-checked', 'false');
   });
 
-  // Test 6: Toggling Reduced Motion checkbox to checked persists after reload (AC2)
-  test('Toggling Reduced Motion checkbox to checked persists after reload', async ({ page }) => {
+  // Test 6: Toggling Reduced Motion to on persists after reload (AC2)
+  test('Toggling Reduced Motion to on persists after reload', async ({ page }) => {
     await page.goto('/settings');
 
-    const reducedMotionCheckbox = page.getByRole('checkbox', { name: /Reduced Motion/i });
+    const reducedMotionSwitch = page.getByRole('switch', { name: /Reduced Motion/i });
 
-    // Check the checkbox
-    await reducedMotionCheckbox.check();
-    await expect(reducedMotionCheckbox).toBeChecked();
+    // Toggle on
+    await reducedMotionSwitch.click();
+    await expect(reducedMotionSwitch).toHaveAttribute('aria-checked', 'true');
 
     // Reload the page
     await page.reload();
     await page.waitForURL('/settings');
 
-    // The checkbox should still be checked
-    const reloadedCheckbox = page.getByRole('checkbox', { name: /Reduced Motion/i });
-    await expect(reloadedCheckbox).toBeChecked();
+    // The switch should still be on
+    const reloadedSwitch = page.getByRole('switch', { name: /Reduced Motion/i });
+    await expect(reloadedSwitch).toHaveAttribute('aria-checked', 'true');
   });
 
   // Test 7: "Reset to Defaults" button resets all settings
@@ -108,15 +108,15 @@ test.describe('Settings - Accessibility Modes and Preferences (Story 1.7)', () =
     await page.getByRole('radio', { name: /Focus/i }).click();
     await expect(page.getByRole('radio', { name: /Focus/i })).toBeChecked();
 
-    // Toggle Reduced Motion checkbox
-    const reducedMotionCheckbox = page.getByRole('checkbox', { name: /Reduced Motion/i });
-    await reducedMotionCheckbox.check();
-    await expect(reducedMotionCheckbox).toBeChecked();
+    // Toggle Reduced Motion switch
+    const reducedMotionSwitch = page.getByRole('switch', { name: /Reduced Motion/i });
+    await reducedMotionSwitch.click();
+    await expect(reducedMotionSwitch).toHaveAttribute('aria-checked', 'true');
 
-    // Toggle Color-Blind Mode checkbox
-    const colorBlindCheckbox = page.getByRole('checkbox', { name: /Color-Blind Mode/i });
-    await colorBlindCheckbox.check();
-    await expect(colorBlindCheckbox).toBeChecked();
+    // Toggle Color-Blind Mode switch
+    const colorBlindSwitch = page.getByRole('switch', { name: /Color-Blind Mode/i });
+    await colorBlindSwitch.click();
+    await expect(colorBlindSwitch).toHaveAttribute('aria-checked', 'true');
 
     // Click Reset to Defaults button
     const resetButton = page.getByRole('button', { name: /Reset to Defaults/i });
@@ -125,25 +125,25 @@ test.describe('Settings - Accessibility Modes and Preferences (Story 1.7)', () =
     // Verify defaults are restored
     await expect(page.getByRole('radio', { name: /Smart/i })).toBeChecked();
     await expect(page.getByRole('radio', { name: /Focus/i })).not.toBeChecked();
-    await expect(reducedMotionCheckbox).not.toBeChecked();
-    await expect(colorBlindCheckbox).not.toBeChecked();
+    await expect(reducedMotionSwitch).toHaveAttribute('aria-checked', 'false');
+    await expect(colorBlindSwitch).toHaveAttribute('aria-checked', 'false');
   });
 
-  // Test 8: Settings page controls are keyboard accessible (Tab to Reduced Motion, Space to toggle)
-  test('Settings page controls are keyboard accessible via Tab and Space', async ({ page }) => {
+  // Test 8: Settings page toggle switches are keyboard accessible (Tab to Reduced Motion, Space to toggle)
+  test('Settings page toggle switches are keyboard accessible via Tab and Space', async ({ page }) => {
     await page.goto('/settings');
 
-    // Tab until we reach the Reduced Motion checkbox
-    const reducedMotionCheckbox = page.getByRole('checkbox', { name: /Reduced Motion/i });
-    await reducedMotionCheckbox.focus();
-    await expect(reducedMotionCheckbox).toBeFocused();
+    // Focus the Reduced Motion switch
+    const reducedMotionSwitch = page.getByRole('switch', { name: /Reduced Motion/i });
+    await reducedMotionSwitch.focus();
+    await expect(reducedMotionSwitch).toBeFocused();
 
-    // Press Space to toggle the checkbox
+    // Press Space to toggle on
     await page.keyboard.press('Space');
-    await expect(reducedMotionCheckbox).toBeChecked();
+    await expect(reducedMotionSwitch).toHaveAttribute('aria-checked', 'true');
 
-    // Press Space again to untoggle
+    // Press Space again to toggle off
     await page.keyboard.press('Space');
-    await expect(reducedMotionCheckbox).not.toBeChecked();
+    await expect(reducedMotionSwitch).toHaveAttribute('aria-checked', 'false');
   });
 });

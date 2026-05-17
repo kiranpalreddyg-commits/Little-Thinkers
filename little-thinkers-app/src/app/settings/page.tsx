@@ -34,11 +34,11 @@ export default function SettingsPage() {
   if (!isAuthenticated || !childProfile) return null;
 
   return (
-    <main className="min-h-screen bg-gradient-to-br from-green-50 to-teal-50">
-      <div className="max-w-2xl mx-auto px-4 py-8">
-        <h1 className="text-3xl font-bold text-gray-900 mb-8">Settings</h1>
+    <div className="min-h-screen bg-gradient-to-b from-[#F0FDF4] to-[#EDE9FE]">
+      <div className="max-w-2xl mx-auto px-4 pt-8 pb-24">
+        <h1 className="text-3xl font-black text-gray-900 mb-8">Settings</h1>
         <AccessibilitySettings childId={childProfile.id} />
       </div>
-    </main>
+    </div>
   );
 }
