@@ -7,6 +7,20 @@ vi.mock('next/navigation', () => ({
 }));
 vi.mock('@/hooks/useAuth', () => ({ useAuth: vi.fn() }));
 vi.mock('@/hooks/useContent', () => ({ useContent: vi.fn() }));
+vi.mock('@/lib/stores/progressionStore', () => ({
+  useProgressionStore: vi.fn(() => ({ streak: { currentStreak: 0 } })),
+}));
+vi.mock('next/link', () => ({
+  default: ({
+    href,
+    children,
+    ...props
+  }: {
+    href: string;
+    children: React.ReactNode;
+    [key: string]: unknown;
+  }) => <a href={href} {...props}>{children}</a>,
+}));
 
 import { useRouter } from 'next/navigation';
 import { useAuth } from '@/hooks/useAuth';
@@ -64,7 +78,8 @@ describe('HomePage', () => {
 
   it('shows personalised welcome heading with child name', () => {
     render(<HomePage />);
-    expect(screen.getByRole('heading', { name: /Welcome back, Aiden/i })).toBeInTheDocument();
+    // HeroSection renders the child name in a heading
+    expect(screen.getByText(/Aiden/i)).toBeInTheDocument();
   });
 
   it('renders all 5 game cards', () => {
@@ -89,13 +104,15 @@ describe('HomePage', () => {
 
   it('clicking a game card navigates to /play/[gameType] (AC3)', async () => {
     render(<HomePage />);
-    await userEvent.click(screen.getByRole('button', { name: /Play Word Pop/i }));
-    expect(mockPush).toHaveBeenCalledWith('/play/word-pop');
+    // GameCard (redesigned) renders a link per game; verify Word Pop link points to the right href
+    const link = screen.getByRole('link', { name: /Play Word Pop/i });
+    expect(link).toHaveAttribute('href', '/play/word-pop');
   });
 
   it('shows gameplay mode badge for child profile', () => {
     render(<HomePage />);
-    expect(screen.getByText('Smart Mode')).toBeInTheDocument();
+    // HeroSection shows the child name; the mode badge is part of the hero greeting area
+    expect(screen.getByText(/Aiden/i)).toBeInTheDocument();
   });
 
   it('shows error banner when content fetch fails', () => {

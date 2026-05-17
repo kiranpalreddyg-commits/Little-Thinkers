@@ -1,7 +1,6 @@
 'use client';
 
 import { Game, GameType } from '@/lib/types/content';
-import { GameCard } from './GameCard';
 
 interface GameGridProps {
   games: Game[];
@@ -41,8 +40,22 @@ export function GameGrid({ games, onGameSelect }: GameGridProps) {
       className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5"
     >
       {games.map((game) => (
-        <div key={game.type} role="listitem">
-          <GameCard game={game} onSelect={onGameSelect} />
+        <div
+          key={game.type}
+          role="listitem"
+          tabIndex={0}
+          aria-label={`Play ${game.name} — ${game.description}`}
+          onClick={() => onGameSelect(game.type)}
+          onKeyDown={(e) => {
+            if (e.key === 'Enter' || e.key === ' ') {
+              e.preventDefault();
+              onGameSelect(game.type);
+            }
+          }}
+          className="bg-gradient-to-br from-gray-50 to-gray-100 rounded-xl p-6 border border-gray-200 cursor-pointer hover:shadow-md hover:-translate-y-0.5 transition-all duration-200 focus:outline-none focus-visible:ring-4 focus-visible:ring-offset-2 focus-visible:ring-blue-500"
+        >
+          <h3 className="text-lg font-bold text-gray-900 text-center mb-2">{game.name}</h3>
+          <p className="text-sm text-gray-600 text-center leading-relaxed">{game.description}</p>
         </div>
       ))}
     </div>

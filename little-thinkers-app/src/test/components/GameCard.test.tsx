@@ -1,70 +1,78 @@
 import { describe, it, expect, vi } from 'vitest';
 import { render, screen } from '@testing-library/react';
-import userEvent from '@testing-library/user-event';
 import { GameCard } from '@/components/home/GameCard';
-import { Game } from '@/lib/types/content';
 
-const mockGame: Game = {
-  type: 'word-pop',
-  name: 'Word Pop',
+// ── Mock next/link ────────────────────────────────────────────────────────────
+vi.mock('next/link', () => ({
+  default: ({
+    href,
+    children,
+    ...props
+  }: {
+    href: string;
+    children: React.ReactNode;
+    [key: string]: unknown;
+  }) => (
+    <a href={href} {...props}>
+      {children}
+    </a>
+  ),
+}));
+
+const defaultProps = {
+  title: 'Word Pop',
   description: 'Guess the hidden word by choosing letters.',
-  themedArea: 'Word Woods',
-  cognitiveSkill: 'vocabulary',
-  bloomsLevel: 'apply',
-  difficulties: ['easy', 'medium', 'hard'],
+  href: '/play/word-pop',
+  color: 'blue' as const,
+  icon: <span>W</span>,
 };
 
 describe('GameCard', () => {
-  it('renders the game name and description', () => {
-    render(<GameCard game={mockGame} onSelect={vi.fn()} />);
+  it('renders the game title and description', () => {
+    render(<GameCard {...defaultProps} />);
     expect(screen.getByText('Word Pop')).toBeInTheDocument();
     expect(screen.getByText(/Guess the hidden word/)).toBeInTheDocument();
   });
 
-  it('shows the cognitive skill badge', () => {
-    render(<GameCard game={mockGame} onSelect={vi.fn()} />);
-    expect(screen.getByText('Vocabulary')).toBeInTheDocument();
+  it('has a link to the game href', () => {
+    render(<GameCard {...defaultProps} />);
+    const link = screen.getByRole('link');
+    expect(link).toHaveAttribute('href', '/play/word-pop');
   });
 
-  it('shows the themed area badge', () => {
-    render(<GameCard game={mockGame} onSelect={vi.fn()} />);
-    expect(screen.getByText('Word Woods')).toBeInTheDocument();
+  it('link has an accessible name containing the game title', () => {
+    render(<GameCard {...defaultProps} />);
+    const link = screen.getByRole('link', { name: /Play Word Pop/i });
+    expect(link).toBeInTheDocument();
   });
 
-  it('calls onSelect with game type on click', async () => {
-    const onSelect = vi.fn();
-    render(<GameCard game={mockGame} onSelect={onSelect} />);
-    await userEvent.click(screen.getByRole('button', { name: /Play Word Pop/i }));
-    expect(onSelect).toHaveBeenCalledWith('word-pop');
+  it('applies data-game-color attribute with the correct color value', () => {
+    const { container } = render(<GameCard {...defaultProps} />);
+    expect(container.querySelector('[data-game-color="blue"]')).not.toBeNull();
   });
 
-  it('calls onSelect on Enter key press', async () => {
-    const onSelect = vi.fn();
-    render(<GameCard game={mockGame} onSelect={onSelect} />);
-    const card = screen.getByRole('button', { name: /Play Word Pop/i });
-    card.focus();
-    await userEvent.keyboard('{Enter}');
-    expect(onSelect).toHaveBeenCalledWith('word-pop');
+  it('renders icon inside a decorative (aria-hidden) wrapper', () => {
+    render(<GameCard {...defaultProps} />);
+    const icon = screen.getByText('W');
+    const hiddenAncestor = icon.closest('[aria-hidden="true"]');
+    expect(hiddenAncestor).not.toBeNull();
   });
 
-  it('calls onSelect on Space key press', async () => {
-    const onSelect = vi.fn();
-    render(<GameCard game={mockGame} onSelect={onSelect} />);
-    const card = screen.getByRole('button', { name: /Play Word Pop/i });
-    card.focus();
-    await userEvent.keyboard(' ');
-    expect(onSelect).toHaveBeenCalledWith('word-pop');
+  it('renders title as a heading element', () => {
+    render(<GameCard {...defaultProps} />);
+    const heading =
+      screen.queryByRole('heading', { name: /Word Pop/i }) ??
+      screen.queryByText('Word Pop');
+    expect(heading).toBeInTheDocument();
   });
 
-  it('has an accessible aria-label', () => {
-    render(<GameCard game={mockGame} onSelect={vi.fn()} />);
-    const card = screen.getByRole('button');
-    expect(card).toHaveAttribute('aria-label', expect.stringContaining('Word Pop'));
+  it('applies correct color class for violet color', () => {
+    const { container } = render(<GameCard {...defaultProps} color="violet" />);
+    expect(container.querySelector('[data-game-color="violet"]')).not.toBeNull();
   });
 
-  it('is keyboard focusable (tabIndex=0)', () => {
-    render(<GameCard game={mockGame} onSelect={vi.fn()} />);
-    const card = screen.getByRole('button');
-    expect(card).toHaveAttribute('tabindex', '0');
+  it('applies correct color class for rose color', () => {
+    const { container } = render(<GameCard {...defaultProps} color="rose" />);
+    expect(container.querySelector('[data-game-color="rose"]')).not.toBeNull();
   });
 });

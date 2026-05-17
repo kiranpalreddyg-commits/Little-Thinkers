@@ -18,7 +18,7 @@ test.describe('Home page', () => {
   });
 
   test('shows personalised welcome message with child name', async ({ page }) => {
-    await expect(page.getByRole('heading', { name: /Welcome back, Aiden/i })).toBeVisible();
+    await expect(page.getByRole('heading', { name: /Aiden/i })).toBeVisible();
   });
 
   test('shows all 5 game cards', async ({ page }) => {
@@ -45,7 +45,7 @@ test.describe('Home page', () => {
   });
 
   test('clicking a game card navigates to the play page', async ({ page }) => {
-    await page.getByRole('button', { name: /Play Word Pop/i }).click();
+    await page.getByRole('link', { name: /Play Word Pop/i }).click();
     await expect(page).toHaveURL(/\/play\/word-pop/);
   });
 

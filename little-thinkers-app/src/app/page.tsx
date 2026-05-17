@@ -4,19 +4,29 @@ import { useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { useAuth } from '@/hooks/useAuth';
 import { useContent } from '@/hooks/useContent';
-import { GameGrid } from '@/components/home/GameGrid';
 import { PuzzleOfTheDay } from '@/components/home/PuzzleOfTheDay';
 import { ContentSection } from '@/components/home/ContentSection';
 import { ContentFilterBar } from '@/components/home/ContentFilter';
-import { GameType } from '@/lib/types/content';
 import { DailyChallengeCard } from '@/components/home/DailyChallengeCard';
+import { GameCard } from '@/components/home/GameCard';
+import { HeroSection } from '@/components/home/HeroSection';
+import { useProgressionStore } from '@/lib/stores/progressionStore';
 import { getDailyGame } from '@/lib/utils/dailyChallenge';
+
+const GAMES = [
+  { title: 'Word Pop',         description: 'Can you crack the secret word? Go!',                href: '/play/word-pop',         color: 'blue'   as const, icon: '🔤' },
+  { title: 'Connection Quest', description: "Spot what links them — it's trickier than it looks!", href: '/play/connection-quest', color: 'green'  as const, icon: '🔗' },
+  { title: 'Memory Flip',      description: 'Flip, match, WIN. How fast can you go?',             href: '/play/memory-flip',      color: 'violet' as const, icon: '🃏' },
+  { title: 'Pattern Builder',  description: 'Finish the pattern before time runs out!',           href: '/play/pattern-builder',  color: 'amber'  as const, icon: '🧩' },
+  { title: 'Grid Logic',       description: 'Only the sharpest thinkers solve this one.',         href: '/play/grid-logic',       color: 'rose'   as const, icon: '⊞' },
+];
 
 export default function HomePage() {
   const { isAuthenticated, childProfile, isLoading: authLoading } = useAuth();
+  const { streak } = useProgressionStore();
+  const streakDays = streak?.currentStreak ?? 0;
   const router = useRouter();
   const {
-    games,
     dailyPuzzle,
     stories,
     scienceTopics,
@@ -54,10 +64,6 @@ export default function HomePage() {
     return null;
   }
 
-  const handleGameSelect = (gameType: GameType) => {
-    router.push(`/play/${gameType}`);
-  };
-
   const handlePuzzleStart = () => {
     if (dailyPuzzle) {
       router.push(`/play/${dailyPuzzle.type}`);
@@ -69,34 +75,10 @@ export default function HomePage() {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-yellow-50 to-orange-50">
-      <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 pb-24">
-        {/* Welcome */}
-        <div className="text-center mb-8">
-          <h1 className="text-3xl font-bold text-gray-900 mb-2">
-            Welcome back, {childProfile.name}!
-          </h1>
-          <p className="text-gray-600">Ready to continue your learning adventure?</p>
-
-          <div className="mt-3">
-            <span
-              className={`inline-flex items-center px-3 py-1 rounded-full text-sm font-medium ${
-                childProfile.gameplay_mode === 'smart'
-                  ? 'bg-green-100 text-green-800'
-                  : childProfile.gameplay_mode === 'chill'
-                  ? 'bg-blue-100 text-blue-800'
-                  : 'bg-purple-100 text-purple-800'
-              }`}
-              aria-label={`Current mode: ${childProfile.gameplay_mode} mode`}
-            >
-              {childProfile.gameplay_mode === 'smart'
-                ? 'Smart Mode'
-                : childProfile.gameplay_mode === 'chill'
-                ? 'Chill Mode'
-                : 'Challenge Mode'}
-            </span>
-          </div>
-        </div>
+    <div className="min-h-screen bg-gradient-to-b from-[#FFFBEB] via-[#FFF7ED] to-[#F0FDF4]">
+      <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pb-24">
+        {/* Hero */}
+        <HeroSection childName={childProfile.name} streakCount={streakDays} />
 
         {/* Error banner */}
         {error && (
@@ -123,16 +105,22 @@ export default function HomePage() {
         {/* Games section */}
         <section aria-labelledby="games-heading" className="mb-10">
           <div className="flex flex-wrap items-center justify-between gap-4 mb-5">
-            <h2 id="games-heading" className="text-2xl font-bold text-gray-900">
-              Choose Your Game
+            <h2 id="games-heading" className="text-2xl font-black text-gray-900">
+              Pick your game!
             </h2>
             {contentLoading && (
               <span className="text-sm text-gray-500" aria-live="polite">Loading…</span>
             )}
           </div>
-          <GameGrid games={games} onGameSelect={handleGameSelect} />
-          <div className="mt-5">
-            <DailyChallengeCard gameType={getDailyGame()} title="Today's Featured Game" />
+          {/* Featured full-width Daily Challenge card */}
+          <div className="mb-3">
+            <DailyChallengeCard gameType={getDailyGame()} title="Your brain challenge is ready!" />
+          </div>
+          {/* 5-game grid */}
+          <div data-testid="game-grid" className="grid grid-cols-2 sm:grid-cols-3 gap-3">
+            {GAMES.map((game) => (
+              <GameCard key={game.href} {...game} />
+            ))}
           </div>
         </section>
 
