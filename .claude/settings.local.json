@@ -10,7 +10,31 @@
       "Bash(gh auth *)",
       "Bash(ssh -T git@github.com)",
       "Bash(git pull *)",
-      "Bash(git rebase *)"
+      "Bash(git rebase *)",
+      "Bash(npm run *)",
+      "Bash(npx playwright *)",
+      "Bash(unzip -p test-results/play-setup-Play-setup-page-b8a3b-me-name-as-the-page-heading-chromium/trace.zip trace.network)",
+      "Bash(unzip -l test-results/play-setup-Play-setup-page-b8a3b-me-name-as-the-page-heading-chromium/trace.zip)",
+      "Bash(cd /tmp/trace_inspect && cat resources/e6392cd2829179e6bcd2a54ac1edde9e23aee701.html 2>/dev/null | grep -o \"Word Pop\\\\|Welcome back\\\\|Choose Difficulty\\\\|How to play\" | head -10)",
+      "Read(//private/tmp/trace_inspect/**)",
+      "Bash(grep -c \"Word Pop\\\\|Welcome back\\\\|Choose Difficulty\\\\|How to play\\\\|<h1\\\\|<h2\" resources/e6392cd2829179e6bcd2a54ac1edde9e23aee701.html)",
+      "Bash(ls -la resources/e6392cd2829179e6bcd2a54ac1edde9e23aee701.html)",
+      "Bash(grep -i \"play\\\\|word\\\\|welcome\\\\|localhost\\\\|home\\\\|/$\")",
+      "Bash(grep -oa '\"snapshotName\":\"after@call@32\"[^{]*{[^}]*\"frameUrl[^,]*' 0-trace.trace)",
+      "Bash(python3 -c ' *)",
+      "Bash(cd /Users/sravanigurijala/Work/projects/little-thinkers/little-thinkers-app && rm -rf test-results/.last-run.json && rm -rf /tmp/trace_inspect)",
+      "Bash(npx vitest *)",
+      "Bash(mkdir -p \"/Users/sravanigurijala/Work/projects/little-thinkers/little-thinkers-app/src/app/play/[gameType]/play\")",
+      "Bash(npx tsc *)",
+      "Bash(npx next *)",
+      "Bash(gh issue *)",
+      "Bash(GH_TOKEN=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 gh issue list --repo kiranpalreddyg-commits/Little-Thinkers --milestone \"Epic 1: Child Gameplay & Rewards Experience\" --json number,title,state --limit 20)",
+      "Bash(git -C /Users/sravanigurijala/Work/projects/little-thinkers config user.name)",
+      "Bash(git -C /Users/sravanigurijala/Work/projects/little-thinkers config user.email)"
+    ],
+    "additionalDirectories": [
+      "/private/tmp/trace_inspect",
+      "/Users/sravanigurijala/Work/projects/little-thinkers/little-thinkers-app/src/app/play/[gameType]"
     ]
   }
 }

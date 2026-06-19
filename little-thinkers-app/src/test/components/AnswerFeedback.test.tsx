@@ -67,6 +67,32 @@ describe('AnswerFeedback', () => {
     expect(onDismiss).not.toHaveBeenCalled();
   });
 
+  it('respects dismissDuration prop — does not dismiss before the configured duration', () => {
+    const onDismiss = vi.fn();
+    render(
+      <AnswerFeedback
+        feedback={correctFeedback}
+        onDismiss={onDismiss}
+        dismissDuration={5000}
+      />,
+    );
+    act(() => { vi.advanceTimersByTime(2000); });
+    expect(onDismiss).not.toHaveBeenCalled();
+  });
+
+  it('respects dismissDuration prop — dismisses after the configured duration (WCAG 2.2.1)', () => {
+    const onDismiss = vi.fn();
+    render(
+      <AnswerFeedback
+        feedback={correctFeedback}
+        onDismiss={onDismiss}
+        dismissDuration={5000}
+      />,
+    );
+    act(() => { vi.advanceTimersByTime(5000); });
+    expect(onDismiss).toHaveBeenCalledTimes(1);
+  });
+
   it('uses orange/amber color class for incorrect, not red (AC2, AC8)', () => {
     const { container } = render(
       <AnswerFeedback feedback={incorrectFeedback} onDismiss={vi.fn()} />,

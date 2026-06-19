@@ -95,9 +95,29 @@ export async function mockApiCall<T>(
 
     // Create child endpoint
     if (endpoint === '/children' && method === 'POST') {
-      const { name, age, gameplay_mode } = body;
-      const newChild = mockDb.createChild('parent-1', name, age, gameplay_mode);
+      const { name, age, gameplay_mode, coppa_consented } = body;
+      const newChild = mockDb.createChild('parent-1', name, age, gameplay_mode, coppa_consented);
       return newChild as T;
+    }
+
+    // Update child profile endpoint
+    if (endpoint.match(/^\/children\/([^/]+)$/) && method === 'PATCH') {
+      const match = endpoint.match(/^\/children\/([^/]+)$/);
+      const childId = match?.[1];
+      if (!childId) throw new Error('Child ID is required');
+      const { name, age, gameplay_mode } = body;
+      const updated = mockDb.updateChild(childId, { name, age, gameplay_mode });
+      return updated as T;
+    }
+
+    // Update child consent endpoint
+    if (endpoint.match(/^\/children\/(.+)\/consent$/) && method === 'PATCH') {
+      const match = endpoint.match(/^\/children\/(.+)\/consent$/);
+      const childId = match?.[1];
+      if (!childId) throw new Error('Child ID is required');
+      const { consented } = body;
+      const updated = mockDb.updateChildConsent(childId, consented);
+      return updated as T;
     }
 
     // Games list endpoint
@@ -159,6 +179,21 @@ export async function mockApiCall<T>(
         earnedAt: new Date().toISOString(),
       });
       return spark as T;
+    }
+
+    // Sync progress endpoint
+    if (endpoint.startsWith('/sync/progress/') && method === 'POST') {
+      return { synced: true } as T;
+    }
+
+    // Forgot password endpoint
+    if (endpoint === '/auth/forgot-password' && method === 'POST') {
+      return { message: 'Recovery email sent' } as T;
+    }
+
+    // Reset password endpoint
+    if (endpoint === '/auth/reset-password' && method === 'POST') {
+      return { message: 'Password reset successful' } as T;
     }
 
     // Unknown endpoint

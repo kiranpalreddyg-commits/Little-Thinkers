@@ -28,7 +28,7 @@
 # - Dev moves story to 'review', then runs code-review (fresh context, different LLM recommended)
 
 generated: 2026-05-11
-last_updated: 2026-05-16 # Sprint Change Proposal approved — Epic 7 + Epic 8 added; priority reordered
+last_updated: 2026-05-20 # 9.4 done — spaced repetition + PostHog A/B instrumentation
 project: little-thinkers
 project_key: NOKEY
 tracking_system: file-system
@@ -51,33 +51,40 @@ development_status:
   7-3-redesign-home-screen-and-game-cards: done
   7-4-redesign-gameplay-progress-and-settings-screens: done
   epic-7-retrospective: optional
-  epic-8: in-progress
+  epic-8: done
   8-1-ai-integration-architecture-and-design-plan: done
   8-2-implement-ai-adaptive-difficulty-and-hint-system: done
   epic-8-retrospective: optional
-  epic-2: backlog
-  2-1-create-parent-account-and-provide-coppa-consent: backlog
-  2-2-view-quick-view-dashboard-and-weekly-summary: backlog
-  2-3-access-full-view-dashboard-and-assessments: backlog
-  2-4-export-reports-print-certificates-and-manage-settings: backlog
-  2-5-recover-password-and-control-friend-feature-visibility: backlog
+  epic-2: done
+  2-1-create-parent-account-and-provide-coppa-consent: done
+  2-2-view-quick-view-dashboard-and-weekly-summary: done
+  2-3-access-full-view-dashboard-and-assessments: done
+  2-4-export-reports-print-certificates-and-manage-settings: done
+  2-5-recover-password-and-control-friend-feature-visibility: done
   epic-2-retrospective: optional
-  epic-3: backlog
-  3-1-sync-gameplay-progress-to-the-cloud-when-connected: backlog
-  3-2-persist-progress-across-sign-ins-and-multiple-children: backlog
-  3-3-encrypt-sensitive-data-and-capture-compliance-audit-logs: backlog
+  epic-3: done
+  3-1-sync-gameplay-progress-to-the-cloud-when-connected: done
+  3-2-persist-progress-across-sign-ins-and-multiple-children: done
+  3-3-encrypt-sensitive-data-and-capture-compliance-audit-logs: done
   epic-3-retrospective: optional
-  epic-4: backlog
-  4-1-create-and-submit-content-for-review: backlog
-  4-2-review-approve-and-publish-content-through-staging: backlog
-  4-3-tag-content-and-run-a-b-tests-with-engagement-tracking: backlog
+  epic-4: done
+  4-1-create-and-submit-content-for-review: done
+  4-2-review-approve-and-publish-content-through-staging: done
+  4-3-tag-content-and-run-a-b-tests-with-engagement-tracking: done
   epic-4-retrospective: optional
-  epic-5: backlog
-  5-1-search-accounts-and-view-activity-timelines: backlog
-  5-2-process-coppa-deletion-requests-and-escalate-issues: backlog
-  5-3-log-support-interactions-for-compliance-and-audit: backlog
+  epic-5: done
+  5-1-search-accounts-and-view-activity-timelines: done
+  5-2-process-coppa-deletion-requests-and-escalate-issues: done
+  5-3-log-support-interactions-for-compliance-and-audit: done
   epic-5-retrospective: optional
-  epic-6: backlog
-  6-1-make-the-app-installable-as-a-pwa-on-ios-and-android: backlog
-  6-2-provide-standalone-pwa-behavior-splash-screen-and-responsive-layouts: backlog
+  epic-6: done
+  6-1-make-the-app-installable-as-a-pwa-on-ios-and-android: done
+  6-2-provide-standalone-pwa-behavior-splash-screen-and-responsive-layouts: done
   epic-6-retrospective: optional
+  epic-9: in-progress
+  9-1-game-content-api-foundation: done
+  9-2-static-game-library-content: done
+  9-3-qwen-ai-integration: done
+  9-4-spaced-repetition-and-ab-instrumentation: done
+  9-5-content-scale-and-ab-analysis: backlog
+  epic-9-retrospective: optional

@@ -30,6 +30,8 @@ export const MOCK_CHILDREN = [
       oneHandedLayout: false,
     },
     gameplay_mode: 'smart',
+    coppa_consented: true,
+    coppa_consented_at: '2026-05-01T00:00:00Z',
     created_at: '2026-05-01T00:00:00Z',
     updated_at: '2026-05-01T00:00:00Z',
   },
@@ -47,6 +49,8 @@ export const MOCK_CHILDREN = [
       oneHandedLayout: false,
     },
     gameplay_mode: 'challenge',
+    coppa_consented: true,
+    coppa_consented_at: '2026-05-02T00:00:00Z',
     created_at: '2026-05-02T00:00:00Z',
     updated_at: '2026-05-02T00:00:00Z',
   },
@@ -264,9 +268,15 @@ class MockDatabase {
     return db.children.find((c: any) => c.id === childId);
   }
 
-  createChild(parentId: string, name: string, age: number, gameplayMode: string = 'smart') {
+  createChild(
+    parentId: string,
+    name: string,
+    age: number,
+    gameplayMode: string = 'smart',
+    coppaConsented: boolean = false,
+  ) {
     const db = this.getDb();
-    
+    const now = new Date().toISOString();
     const newChild = {
       id: `child-${Date.now()}`,
       parent_id: parentId,
@@ -281,14 +291,38 @@ class MockDatabase {
         oneHandedLayout: false,
       },
       gameplay_mode: gameplayMode,
-      created_at: new Date().toISOString(),
-      updated_at: new Date().toISOString(),
+      coppa_consented: coppaConsented,
+      coppa_consented_at: coppaConsented ? now : null,
+      created_at: now,
+      updated_at: now,
     };
 
     db.children.push(newChild);
     this.setDb(db);
-    
     return newChild;
+  }
+
+  updateChild(childId: string, updates: { name?: string; age?: number; gameplay_mode?: string }) {
+    const db = this.getDb();
+    const child = db.children.find((c: any) => c.id === childId);
+    if (!child) throw new Error('Child profile not found');
+    if (updates.name !== undefined) child.name = updates.name;
+    if (updates.age !== undefined) child.age = updates.age;
+    if (updates.gameplay_mode !== undefined) child.gameplay_mode = updates.gameplay_mode;
+    child.updated_at = new Date().toISOString();
+    this.setDb(db);
+    return child;
+  }
+
+  updateChildConsent(childId: string, consented: boolean) {
+    const db = this.getDb();
+    const child = db.children.find((c: any) => c.id === childId);
+    if (!child) throw new Error('Child profile not found');
+    child.coppa_consented = consented;
+    child.coppa_consented_at = consented ? new Date().toISOString() : null;
+    child.updated_at = new Date().toISOString();
+    this.setDb(db);
+    return child;
   }
 
   getRewards(childId: string): ThoughtSpark[] {

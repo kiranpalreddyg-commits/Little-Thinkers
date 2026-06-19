@@ -1,0 +1,17 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 192 192" width="192" height="192">
+  <!-- Safe zone: content within 77px–115px x/y (80% of 192) for maskable -->
+  <rect width="192" height="192" fill="#7C3AED"/>
+  <!-- Spark purple circle as background disc -->
+  <circle cx="96" cy="96" r="72" fill="#6D28D9"/>
+  <!-- "LT" wordmark in white Nunito-style rounded letterforms -->
+  <text
+    x="96"
+    y="118"
+    font-family="Nunito, Fredoka One, Arial Rounded MT Bold, sans-serif"
+    font-size="72"
+    font-weight="900"
+    fill="white"
+    text-anchor="middle"
+    letter-spacing="-2"
+  >LT</text>
+</svg>

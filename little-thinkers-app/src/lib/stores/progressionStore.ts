@@ -27,7 +27,7 @@ function defaultDifficulty(): Record<GameTypeKey, DifficultyLevel> {
 }
 
 function defaultAnswerWindow(): Record<GameTypeKey, boolean[]> {
-  return Object.fromEntries(GAME_TYPES.map((g) => [g, []])) as Record<GameTypeKey, boolean[]>;
+  return Object.fromEntries(GAME_TYPES.map((g) => [g, [] as boolean[]])) as Record<GameTypeKey, boolean[]>;
 }
 
 function defaultHintsUsed(): Record<GameTypeKey, number> {
@@ -166,6 +166,7 @@ export const useProgressionStore = create<ProgressionState>((set, get) => ({
   hydrateProgression: (childId: string) => {
     const stored = readStoredProgression(childId);
     const storedStreak = readStoredStreak(childId);
+    const storedAI = readStoredAI(childId);
 
     let badges: Badge[] = [];
     let worldAreas = WORLD_AREAS;
@@ -188,7 +189,10 @@ export const useProgressionStore = create<ProgressionState>((set, get) => ({
 
     const streak = storedStreak || initDefaultStreak(childId);
 
-    set({ badges, worldAreas, mascot, streak, newBadgeNotification: null });
+    set({
+      badges, worldAreas, mascot, streak, newBadgeNotification: null,
+      ...(storedAI ? { gameDifficulty: storedAI.gameDifficulty, hintsUsed: storedAI.hintsUsed } : {}),
+    });
   },
 
   updateFromSparks: (childId: string, totalSparks: number): Badge[] => {

@@ -1,0 +1,14 @@
+{
+  "id": "session-1779312198351",
+  "startedAt": "2026-05-20T21:23:18.351Z",
+  "cwd": "/Users/sravanigurijala/Work/projects/little-thinkers/little-thinkers-app",
+  "context": {},
+  "metrics": {
+    "edits": 14,
+    "commands": 0,
+    "tasks": 0,
+    "errors": 0
+  },
+  "endedAt": "2026-05-26T22:07:22.892Z",
+  "duration": 521044541
+}

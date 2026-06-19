@@ -2,6 +2,7 @@
 
 import { useState } from 'react';
 import Link from 'next/link';
+import posthog from 'posthog-js';
 import { useAuth } from '@/hooks/useAuth';
 
 interface LoginFormProps {
@@ -23,6 +24,8 @@ export const LoginForm: React.FC<LoginFormProps> = ({ onSuccess }) => {
 
     try {
       await login({ email: email.trim(), password });
+      posthog.identify(email.trim(), { email: email.trim() });
+      posthog.capture('user_logged_in', { email: email.trim() });
       onSuccess?.();
     } catch (error) {
       // Error is handled by the hook
@@ -105,7 +108,8 @@ export const LoginForm: React.FC<LoginFormProps> = ({ onSuccess }) => {
         <button
           type="submit"
           disabled={isLoading || !email.trim() || !password.trim()}
-          className="w-full bg-blue-600 text-white py-3 px-4 rounded-lg hover:bg-blue-700 focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:bg-blue-600 transition-colors text-base font-medium"
+          className="w-full text-white py-3 px-4 rounded-xl border-[3px] font-black text-base transition-opacity disabled:opacity-50 disabled:cursor-not-allowed min-h-[48px]"
+          style={{ backgroundColor: 'var(--theme-border)', borderColor: 'var(--theme-shadow)', boxShadow: '0 4px 0 var(--theme-shadow)' }}
         >
           {isLoading ? (
             <div className="flex items-center justify-center">
@@ -126,7 +130,8 @@ export const LoginForm: React.FC<LoginFormProps> = ({ onSuccess }) => {
           Don't have an account?{' '}
           <Link
             href="/signup"
-            className="text-blue-600 hover:text-blue-800 font-medium"
+            className="font-bold hover:opacity-70 transition-opacity"
+            style={{ color: 'var(--theme-border)' }}
           >
             Create one
           </Link>

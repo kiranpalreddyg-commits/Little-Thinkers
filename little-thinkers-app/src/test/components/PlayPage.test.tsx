@@ -12,7 +12,7 @@ vi.mock('@/hooks/useContent', () => ({ useContent: vi.fn() }));
 import { useRouter, useParams } from 'next/navigation';
 import { useAuth } from '@/hooks/useAuth';
 import { useContent } from '@/hooks/useContent';
-import PlayPage from '@/app/play/[gameType]/page';
+import PlayPage from '@/app/(shell)/play/[gameType]/page';
 
 const MOCK_CHILD = {
   id: 'child-1',

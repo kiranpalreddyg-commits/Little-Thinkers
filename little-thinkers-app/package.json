@@ -3,8 +3,9 @@
   "version": "0.1.0",
   "private": true,
   "scripts": {
-    "dev": "next dev",
+    "dev": "NEXT_TELEMETRY_DISABLED=1 ulimit -n 65536 && NODE_OPTIONS=--max-old-space-size=1024 next dev",
     "build": "next build",
+    "postbuild": "node scripts/inject-sw-version.mjs",
     "start": "next start",
     "lint": "eslint",
     "test": "vitest run",
@@ -17,6 +18,8 @@
     "js-cookie": "^3.0.5",
     "lucide-react": "^1.16.0",
     "next": "16.2.6",
+    "posthog-js": "^1.374.2",
+    "posthog-node": "^5.34.5",
     "react": "19.2.4",
     "react-dom": "19.2.4",
     "zustand": "^5.0.13"

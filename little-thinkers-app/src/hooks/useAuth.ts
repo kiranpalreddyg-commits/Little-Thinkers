@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react';
+import posthog from 'posthog-js';
 import { useAuthStore } from '@/lib/stores/authStore';
 import { apiClient } from '@/lib/api/auth';
 import { LoginCredentials, AuthResponse, ChildProfile } from '@/lib/types/auth';
@@ -34,6 +35,7 @@ export const useAuth = () => {
       );
 
       storeLogin(response);
+      posthog.identify(response.user.id, { email: response.user.email, role: response.user.role });
     } catch (error) {
       const message = error instanceof Error ? error.message : 'Login failed';
       setError(message);
@@ -50,6 +52,7 @@ export const useAuth = () => {
 
       const response: AuthResponse = await apiClient.register(email, password);
       storeLogin(response);
+      posthog.identify(response.user.id, { email: response.user.email, role: response.user.role });
     } catch (error) {
       const message = error instanceof Error ? error.message : 'Signup failed';
       setError(message);
@@ -60,6 +63,8 @@ export const useAuth = () => {
   };
 
   const logout = () => {
+    posthog.capture('user_logged_out');
+    posthog.reset();
     storeLogout();
   };
 

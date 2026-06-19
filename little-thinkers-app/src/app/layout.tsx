@@ -1,23 +1,33 @@
 import type { Metadata } from "next";
-import { Nunito, Inter } from "next/font/google";
+import { Nunito, Fredoka } from "next/font/google";
 import "./globals.css";
-import { AppShellWrapper } from "@/components/navigation/AppShellWrapper";
+import { PostHogProvider } from "@/components/PostHogProvider";
+import { PostHogPageView } from "@/components/PostHogPageView";
+
+const fredoka = Fredoka({
+  variable: "--font-fredoka",
+  subsets: ["latin"],
+  weight: ["400", "500", "600", "700"],
+});
 
 const nunito = Nunito({
   variable: "--font-nunito",
   subsets: ["latin"],
-  weight: ["700", "800", "900"],
-});
-
-const inter = Inter({
-  variable: "--font-inter",
-  subsets: ["latin"],
-  weight: ["400", "500", "600"],
+  weight: ["400", "500", "600", "700", "800"],
 });
 
 export const metadata: Metadata = {
   title: "Little Thinkers",
   description: "Fun learning games for curious young minds",
+  manifest: "/manifest.json",
+  appleWebApp: {
+    capable: true,
+    statusBarStyle: "default",
+    title: "Little Thinkers",
+  },
+  other: {
+    "mobile-web-app-capable": "yes",
+  },
 };
 
 export default function RootLayout({
@@ -28,10 +38,19 @@ export default function RootLayout({
   return (
     <html
       lang="en"
-      className={`${nunito.variable} ${inter.variable} h-full antialiased`}
+      data-theme="sunshine"
+      className={`${fredoka.variable} ${nunito.variable} h-full antialiased`}
     >
-      <body className="min-h-full flex flex-col">
-        <AppShellWrapper>{children}</AppShellWrapper>
+      <head>
+        <meta name="theme-color" content="#7C3AED" />
+        <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+        <link rel="apple-touch-icon" href="/icons/icon-192.svg" />
+      </head>
+      <body className="min-h-full flex flex-col safe-area-inset">
+        <PostHogProvider>
+          <PostHogPageView />
+          {children}
+        </PostHogProvider>
       </body>
     </html>
   );

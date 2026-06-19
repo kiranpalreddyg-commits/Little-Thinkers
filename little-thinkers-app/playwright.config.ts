@@ -16,6 +16,10 @@ export default defineConfig({
       name: 'chromium',
       use: { ...devices['Desktop Chrome'] },
     },
+    {
+      name: 'webkit',
+      use: { ...devices['iPhone 14'] },
+    },
   ],
   webServer: {
     command: 'NEXT_PUBLIC_USE_MOCK_API=true npm run dev',

@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import Anthropic from '@anthropic-ai/sdk';
 import { STATIC_HINTS } from '@/lib/ai/staticHints';
+import { getPostHogClient } from '@/lib/posthog-server';
 
 const TIMEOUT_MS = 2000;
 
@@ -10,6 +11,10 @@ function staticFallback(gameType: string, hintNumber: number): string {
 }
 
 export async function POST(request: NextRequest) {
+  if (!request.cookies.has('lt_auth')) {
+    return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+  }
+
   let body: {
     childId?: string;
     gameType?: string;
@@ -32,6 +37,11 @@ export async function POST(request: NextRequest) {
 
   const apiKey = process.env.ANTHROPIC_API_KEY;
   if (!apiKey) {
+    getPostHogClient().capture({
+      distinctId: childId,
+      event: 'hint_api_requested',
+      properties: { game_type: gameType, hint_number: hintNumber, source: 'static_fallback', reason: 'no_api_key' },
+    });
     return NextResponse.json({ hint: staticFallback(gameType, hintNumber) });
   }
 
@@ -60,11 +70,26 @@ This is hint #${hintNumber} of 2 — make hint 2 more specific than hint 1.`;
       result.content[0]?.type === 'text' ? result.content[0].text.trim() : '';
 
     if (!text) {
+      getPostHogClient().capture({
+        distinctId: childId,
+        event: 'hint_api_requested',
+        properties: { game_type: gameType, hint_number: hintNumber, source: 'static_fallback', reason: 'empty_response' },
+      });
       return NextResponse.json({ hint: staticFallback(gameType, hintNumber) });
     }
 
+    getPostHogClient().capture({
+      distinctId: childId,
+      event: 'hint_api_requested',
+      properties: { game_type: gameType, hint_number: hintNumber, source: 'ai', age_range: ageRange },
+    });
     return NextResponse.json({ hint: text });
   } catch {
+    getPostHogClient().capture({
+      distinctId: childId,
+      event: 'hint_api_requested',
+      properties: { game_type: gameType, hint_number: hintNumber, source: 'static_fallback', reason: 'error_or_timeout' },
+    });
     return NextResponse.json({ hint: staticFallback(gameType, hintNumber) });
   }
 }

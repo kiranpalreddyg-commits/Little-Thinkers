@@ -15,7 +15,7 @@ import { useRouter, useParams, useSearchParams } from 'next/navigation';
 import { useAuth } from '@/hooks/useAuth';
 import { useContent } from '@/hooks/useContent';
 import { useGameSession } from '@/hooks/useGameSession';
-import GameplayPage from '@/app/play/[gameType]/play/page';
+import GameplayPage from '@/app/(shell)/play/[gameType]/play/page';
 
 const MOCK_CHILD = {
   id: 'child-1',
@@ -154,6 +154,30 @@ describe('GameplayPage (active play screen)', () => {
       await screen.findByRole('button', { name: /Quit to Home/i }),
     );
     expect(mockPush).toHaveBeenCalledWith('/');
+  });
+
+  it('answer buttons are disabled while the game is paused (a11y — keyboard guard)', async () => {
+    render(<GameplayPage />);
+    await userEvent.click(screen.getByRole('button', { name: /Pause Game/i }));
+    await screen.findByRole('heading', { name: /Game Paused/i });
+    const answerButtons = screen
+      .getAllByRole('button')
+      .filter((btn) => ['7', '8', '9', '6'].includes(btn.textContent ?? ''));
+    expect(answerButtons.length).toBeGreaterThan(0);
+    answerButtons.forEach((btn) => expect(btn).toBeDisabled());
+  });
+
+  it('answer buttons are re-enabled after resuming from pause', async () => {
+    render(<GameplayPage />);
+    await userEvent.click(screen.getByRole('button', { name: /Pause Game/i }));
+    await screen.findByRole('heading', { name: /Game Paused/i });
+    await userEvent.click(screen.getByRole('button', { name: /^Resume$/i }));
+    await waitFor(() => {
+      const answerButtons = screen
+        .getAllByRole('button')
+        .filter((btn) => ['7', '8', '9', '6'].includes(btn.textContent ?? ''));
+      answerButtons.forEach((btn) => expect(btn).not.toBeDisabled());
+    });
   });
 
   it('redirects unauthenticated users to /login', async () => {

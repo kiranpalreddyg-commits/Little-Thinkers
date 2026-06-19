@@ -4,6 +4,17 @@ import { useState } from 'react';
 import { useAuth } from '@/hooks/useAuth';
 import { useChildProfiles } from '@/hooks/useAuth';
 import { ChildProfile } from '@/lib/types/auth';
+import { AvatarCard } from '@/components/avatars/AvatarCard';
+import { AVATARS } from '@/components/avatars';
+import type { AvatarId } from '@/lib/stores/themeStore';
+
+function avatarIdForProfile(profileId: string): AvatarId {
+  let hash = 0;
+  for (let i = 0; i < profileId.length; i++) {
+    hash = (hash * 31 + profileId.charCodeAt(i)) & 0xffffffff;
+  }
+  return AVATARS[Math.abs(hash) % AVATARS.length].id as AvatarId;
+}
 
 interface ProfileSelectorProps {
   onProfileSelected?: (profile: ChildProfile) => void;
@@ -75,24 +86,21 @@ export const ProfileSelector: React.FC<ProfileSelectorProps> = ({ onProfileSelec
           <button
             key={profile.id}
             onClick={() => handleProfileSelect(profile)}
-            className={`relative p-6 border-2 rounded-xl transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 ${
+            className="relative p-6 border-[3px] rounded-[1.5rem] transition-all duration-200 focus:outline-none bg-white"
+            style={
               selectedProfile?.id === profile.id
-                ? 'border-blue-500 bg-blue-50 shadow-lg'
-                : 'border-gray-200 bg-white hover:border-gray-300 hover:shadow-md'
-            }`}
+                ? { borderColor: 'var(--theme-border)', boxShadow: '0 6px 0 var(--theme-shadow)' }
+                : { borderColor: '#E5E7EB', boxShadow: '0 3px 0 #D1D5DB' }
+            }
           >
             <div className="flex flex-col items-center text-center">
               {/* Avatar */}
-              <div className="w-16 h-16 bg-gradient-to-br from-blue-400 to-purple-500 rounded-full flex items-center justify-center mb-4 text-white text-2xl font-bold">
-                {profile.avatar_url ? (
-                  <img
-                    src={profile.avatar_url}
-                    alt={`${profile.name}'s avatar`}
-                    className="w-full h-full rounded-full object-cover"
-                  />
-                ) : (
-                  profile.name.charAt(0).toUpperCase()
-                )}
+              <div className="mb-4">
+                <AvatarCard
+                  avatarId={avatarIdForProfile(profile.id)}
+                  size="md"
+                  selected={selectedProfile?.id === profile.id}
+                />
               </div>
 
               {/* Name */}
@@ -102,13 +110,9 @@ export const ProfileSelector: React.FC<ProfileSelectorProps> = ({ onProfileSelec
               <p className="text-sm text-gray-500 mb-3">{profile.age} years old</p>
 
               {/* Game Mode Badge */}
-              <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${
-                profile.gameplay_mode === 'smart'
-                  ? 'bg-green-100 text-green-800'
-                  : profile.gameplay_mode === 'chill'
-                  ? 'bg-blue-100 text-blue-800'
-                  : 'bg-purple-100 text-purple-800'
-              }`}>
+              <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-black border-[2px]"
+                style={{ backgroundColor: 'var(--theme-card-bg)', borderColor: 'var(--theme-border)', color: 'var(--theme-text)' }}
+              >
                 {profile.gameplay_mode === 'smart' ? 'Smart Mode' :
                  profile.gameplay_mode === 'chill' ? 'Chill Mode' : 'Challenge Mode'}
               </span>
@@ -117,7 +121,7 @@ export const ProfileSelector: React.FC<ProfileSelectorProps> = ({ onProfileSelec
             {/* Selection Indicator */}
             {selectedProfile?.id === profile.id && (
               <div className="absolute top-2 right-2">
-                <svg className="w-6 h-6 text-blue-600" fill="currentColor" viewBox="0 0 20 20">
+                <svg className="w-6 h-6" style={{ color: 'var(--theme-border)' }} fill="currentColor" viewBox="0 0 20 20">
                   <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
                 </svg>
               </div>
@@ -130,7 +134,8 @@ export const ProfileSelector: React.FC<ProfileSelectorProps> = ({ onProfileSelec
         <div className="mt-8 text-center">
           <button
             onClick={() => handleProfileSelect(selectedProfile)}
-            className="bg-blue-600 text-white px-8 py-3 rounded-lg hover:bg-blue-700 focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 transition-colors text-lg font-medium"
+            className="text-white px-8 py-3 rounded-[1.5rem] border-[3px] font-black text-lg transition-transform active:translate-y-[2px]"
+            style={{ backgroundColor: 'var(--theme-border)', borderColor: 'var(--theme-shadow)', boxShadow: '0 5px 0 var(--theme-shadow)' }}
           >
             Continue as {selectedProfile.name}
           </button>

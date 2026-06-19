@@ -11,6 +11,7 @@ export interface AccessibilitySettings {
   dyslexiaFont: boolean
   textSize: TextSize
   handedLayout: HandedLayout
+  feedbackDuration: number
 }
 
 export const DEFAULT_ACCESSIBILITY_SETTINGS: AccessibilitySettings = {
@@ -20,4 +21,5 @@ export const DEFAULT_ACCESSIBILITY_SETTINGS: AccessibilitySettings = {
   dyslexiaFont: false,
   textSize: 'medium',
   handedLayout: 'default',
+  feedbackDuration: 2000,
 }

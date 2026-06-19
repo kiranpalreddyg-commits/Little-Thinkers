@@ -25,7 +25,7 @@ vi.mock('next/link', () => ({
 import { useRouter } from 'next/navigation';
 import { useAuth } from '@/hooks/useAuth';
 import { useContent } from '@/hooks/useContent';
-import HomePage from '@/app/page';
+import HomePage from '@/app/(shell)/page';
 
 const MOCK_CHILD = { id: 'child-1', name: 'Aiden', age: 8, gameplay_mode: 'smart' as const, avatar_url: null };
 

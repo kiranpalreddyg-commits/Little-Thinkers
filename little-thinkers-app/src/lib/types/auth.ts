@@ -16,6 +16,8 @@ export interface ChildProfile {
   avatar_url?: string;
   accessibility_settings: Record<string, any>;
   gameplay_mode: 'smart' | 'chill' | 'challenge';
+  coppa_consented: boolean;
+  coppa_consented_at: string | null;
   created_at: string;
   updated_at: string;
 }

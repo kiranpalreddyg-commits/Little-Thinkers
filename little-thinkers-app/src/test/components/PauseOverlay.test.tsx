@@ -111,4 +111,48 @@ describe('PauseOverlay', () => {
     );
     expect(screen.getByRole('dialog')).toBeInTheDocument();
   });
+
+  it('Tab from the last button wraps focus back to the first button (focus trap)', async () => {
+    render(
+      <PauseOverlay
+        gameName={GAME_NAME}
+        onResume={vi.fn()}
+        onQuit={vi.fn()}
+      />,
+    );
+    const quit = screen.getByRole('button', { name: /Quit to Home/i });
+    quit.focus();
+    expect(quit).toHaveFocus();
+    await userEvent.tab();
+    expect(screen.getByRole('button', { name: /Resume/i })).toHaveFocus();
+  });
+
+  it('Shift+Tab from the first button wraps focus to the last button (focus trap)', async () => {
+    render(
+      <PauseOverlay
+        gameName={GAME_NAME}
+        onResume={vi.fn()}
+        onQuit={vi.fn()}
+      />,
+    );
+    const resume = screen.getByRole('button', { name: /Resume/i });
+    resume.focus();
+    expect(resume).toHaveFocus();
+    await userEvent.tab({ shift: true });
+    expect(screen.getByRole('button', { name: /Quit to Home/i })).toHaveFocus();
+  });
+
+  it('Escape key calls onResume (focus trap handler)', async () => {
+    const onResume = vi.fn();
+    render(
+      <PauseOverlay
+        gameName={GAME_NAME}
+        onResume={onResume}
+        onQuit={vi.fn()}
+      />,
+    );
+    screen.getByRole('button', { name: /Resume/i }).focus();
+    await userEvent.keyboard('{Escape}');
+    expect(onResume).toHaveBeenCalledTimes(1);
+  });
 });

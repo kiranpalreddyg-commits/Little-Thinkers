@@ -33,7 +33,7 @@ import { useGameSession } from '@/hooks/useGameSession';
 import { useRewards } from '@/hooks/useRewards';
 import { useProgression } from '@/hooks/useProgression';
 import { useAuthStore } from '@/lib/stores/authStore';
-import GameplayPage from '@/app/play/[gameType]/play/page';
+import GameplayPage from '@/app/(shell)/play/[gameType]/play/page';
 
 // ── Shared fixtures ──────────────────────────────────────────────────────────
 const MOCK_CHILD = {
@@ -122,7 +122,7 @@ const makeProgressionHook = () => ({
   hintsUsed: { 'word-pop': 0 } as Record<string, number>,
   hydrateProgression: vi.fn(),
   updateFromSparks: vi.fn(),
-  checkAndAwardBadges: vi.fn(),
+  checkAndAwardBadges: vi.fn().mockReturnValue([]),
   recordActivity: vi.fn(),
   dismissNotification: vi.fn(),
   recordAnswer: vi.fn(),

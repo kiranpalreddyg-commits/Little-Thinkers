@@ -6,14 +6,15 @@ import type { AnswerFeedback as AnswerFeedbackType } from '@/lib/types/rewards';
 interface Props {
   feedback: AnswerFeedbackType | null;
   onDismiss: () => void;
+  dismissDuration?: number;
 }
 
-export function AnswerFeedback({ feedback, onDismiss }: Props) {
+export function AnswerFeedback({ feedback, onDismiss, dismissDuration = 2000 }: Props) {
   useEffect(() => {
     if (!feedback) return;
-    const timer = setTimeout(onDismiss, 2000);
+    const timer = setTimeout(onDismiss, dismissDuration);
     return () => clearTimeout(timer);
-  }, [feedback, onDismiss]);
+  }, [feedback, onDismiss, dismissDuration]);
 
   const isCorrect = feedback?.type === 'correct';
 

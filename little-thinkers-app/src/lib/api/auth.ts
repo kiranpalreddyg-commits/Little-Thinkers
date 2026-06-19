@@ -147,6 +147,55 @@ class ApiClient {
   async getChildProfile(id: string): Promise<ChildProfile> {
     return this.request<ChildProfile>(`/children/${id}`);
   }
+
+  async addChild(
+    name: string,
+    age: number,
+    gameplayMode: 'smart' | 'chill' | 'challenge',
+    coppaConsented: boolean,
+  ): Promise<ChildProfile> {
+    return this.request<ChildProfile>('/children', {
+      method: 'POST',
+      body: JSON.stringify({ name, age, gameplay_mode: gameplayMode, coppa_consented: coppaConsented }),
+    });
+  }
+
+  async updateChild(
+    childId: string,
+    updates: { name?: string; age?: number; gameplay_mode?: 'smart' | 'chill' | 'challenge' },
+  ): Promise<ChildProfile> {
+    return this.request<ChildProfile>(`/children/${childId}`, {
+      method: 'PATCH',
+      body: JSON.stringify(updates),
+    });
+  }
+
+  async updateChildConsent(childId: string, consented: boolean): Promise<ChildProfile> {
+    return this.request<ChildProfile>(`/children/${childId}/consent`, {
+      method: 'PATCH',
+      body: JSON.stringify({ consented }),
+    });
+  }
+
+  async syncProgress(childId: string): Promise<{ synced: boolean }> {
+    return this.request<{ synced: boolean }>(`/sync/progress/${childId}`, {
+      method: 'POST',
+    });
+  }
+
+  async forgotPassword(email: string): Promise<{ message: string }> {
+    return this.request<{ message: string }>('/auth/forgot-password', {
+      method: 'POST',
+      body: JSON.stringify({ email }),
+    });
+  }
+
+  async resetPassword(token: string, password: string): Promise<{ message: string }> {
+    return this.request<{ message: string }>('/auth/reset-password', {
+      method: 'POST',
+      body: JSON.stringify({ token, password }),
+    });
+  }
 }
 
 export const apiClient = new ApiClient(API_BASE_URL);

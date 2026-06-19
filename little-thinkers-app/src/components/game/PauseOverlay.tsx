@@ -1,5 +1,7 @@
 'use client';
 
+import { useEffect, useRef } from 'react';
+
 interface PauseOverlayProps {
   gameName: string;
   onResume: () => void;
@@ -7,15 +9,43 @@ interface PauseOverlayProps {
 }
 
 export function PauseOverlay({ gameName, onResume, onQuit }: PauseOverlayProps) {
+  const dialogRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    const dialog = dialogRef.current;
+    if (!dialog) return;
+
+    const focusable = Array.from(
+      dialog.querySelectorAll<HTMLElement>(
+        'button, [href], input, select, textarea, [tabindex]:not([tabindex="-1"])',
+      ),
+    ).filter((el) => !el.hasAttribute('disabled'));
+    const first = focusable[0];
+    const last = focusable[focusable.length - 1];
+
+    const trap = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') { onResume(); return; }
+      if (e.key !== 'Tab') return;
+      if (e.shiftKey) {
+        if (document.activeElement === first) { e.preventDefault(); last.focus(); }
+      } else {
+        if (document.activeElement === last) { e.preventDefault(); first.focus(); }
+      }
+    };
+
+    dialog.addEventListener('keydown', trap);
+    return () => dialog.removeEventListener('keydown', trap);
+  }, [onResume]);
+
   return (
-    <div
-      role="dialog"
-      aria-label="Game Paused"
-      aria-modal="true"
-      className="fixed inset-0 bg-black/50 flex items-center justify-center"
-      onKeyDown={(e) => { if (e.key === 'Escape') onResume(); }}
-    >
-      <div className="bg-white rounded-xl p-8 shadow-lg max-w-sm w-full mx-4">
+    <div className="fixed inset-0 bg-black/50 flex items-center justify-center">
+      <div
+        ref={dialogRef}
+        role="dialog"
+        aria-label="Game Paused"
+        aria-modal="true"
+        className="bg-white rounded-xl p-8 shadow-lg max-w-sm w-full mx-4"
+      >
         <h2 className="text-2xl font-bold text-gray-900 text-center mb-2">Game Paused</h2>
         <p className="text-center text-gray-600 mb-6">{gameName}</p>
 

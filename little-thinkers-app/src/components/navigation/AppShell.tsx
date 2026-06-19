@@ -21,7 +21,7 @@ export function AppShell({ children, hideTabBar = false, sparkCount }: AppShellP
       <AppHeader sparkCount={sparkCount} />
       <main
         id="main-content"
-        className="flex-1 pb-[72px] md:pb-0"
+        className="flex-1 pb-28 xl:pb-0"
         style={{ animation: 'fadeSlideUp 300ms cubic-bezier(0.22, 1, 0.36, 1) both' }}
       >
         {children}

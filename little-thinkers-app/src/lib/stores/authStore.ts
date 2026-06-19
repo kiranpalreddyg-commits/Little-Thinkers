@@ -48,6 +48,9 @@ export const useAuthStore = create<AuthStore>((set, get) => ({
     // Store user data in localStorage for persistence
     localStorage.setItem(USER_STORAGE_KEY, JSON.stringify(user));
 
+    // Set a simple presence cookie readable by Next.js middleware (edge runtime)
+    document.cookie = `lt_auth=1; path=/; max-age=86400; SameSite=Lax${process.env.NODE_ENV === 'production' ? '; Secure' : ''}`;
+
     set({
       user,
       accessToken: access_token,
@@ -62,6 +65,7 @@ export const useAuthStore = create<AuthStore>((set, get) => ({
     // Clear all stored data
     Cookies.remove('access_token');
     Cookies.remove('refresh_token');
+    document.cookie = 'lt_auth=; path=/; max-age=0';
     localStorage.removeItem(USER_STORAGE_KEY);
     localStorage.removeItem(CHILD_STORAGE_KEY);
 
@@ -119,6 +123,9 @@ export const useAuthStore = create<AuthStore>((set, get) => ({
       if (accessToken && userData) {
         const user = JSON.parse(userData);
         const childProfile = childData ? JSON.parse(childData) : null;
+
+        // Re-mint the middleware presence cookie so it stays in sync with access_token
+        document.cookie = `lt_auth=1; path=/; max-age=86400; SameSite=Lax${process.env.NODE_ENV === 'production' ? '; Secure' : ''}`;
 
         set({
           user,
