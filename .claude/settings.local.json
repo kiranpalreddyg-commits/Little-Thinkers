@@ -28,7 +28,7 @@
       "Bash(npx tsc *)",
       "Bash(npx next *)",
       "Bash(gh issue *)",
-      "Bash(GH_TOKEN=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 gh issue list --repo kiranpalreddyg-commits/Little-Thinkers --milestone \"Epic 1: Child Gameplay & Rewards Experience\" --json number,title,state --limit 20)",
+      "Bash(GH_TOKEN=*********** gh issue list --repo kiranpalreddyg-commits/Little-Thinkers --milestone \"Epic 1: Child Gameplay & Rewards Experience\" --json number,title,state --limit 20)",
       "Bash(git -C /Users/sravanigurijala/Work/projects/little-thinkers config user.name)",
       "Bash(git -C /Users/sravanigurijala/Work/projects/little-thinkers config user.email)"
     ],
