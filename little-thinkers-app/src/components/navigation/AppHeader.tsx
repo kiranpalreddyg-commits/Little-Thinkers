@@ -16,7 +16,7 @@ interface AppHeaderProps {
 export function AppHeader({ sparkCount = 0 }: AppHeaderProps) {
   const { logout } = useAuth();
   const router = useRouter();
-  const { cycleTheme, avatar, setAvatar } = useThemeStore();
+  const { avatar, setAvatar } = useThemeStore();
   const [modalOpen, setModalOpen] = useState(false);
 
   return (
@@ -74,9 +74,8 @@ export function AppHeader({ sparkCount = 0 }: AppHeaderProps) {
               <Avatar id={avatar} size={44} />
             </button>
 
-            <button
-              type="button"
-              onClick={cycleTheme}
+            <Link
+              href="/settings"
               aria-label="Change color theme"
               className="w-10 h-10 rounded-xl border-[3px] flex items-center justify-center transition-transform active:scale-95"
               style={{
@@ -86,7 +85,7 @@ export function AppHeader({ sparkCount = 0 }: AppHeaderProps) {
               }}
             >
               <Palette size={18} />
-            </button>
+            </Link>
 
             <button
               type="button"

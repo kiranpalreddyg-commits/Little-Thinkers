@@ -21,8 +21,8 @@ export function AppShellWrapper({ children }: AppShellWrapperProps) {
 
   return (
     <AppShellProvider>
-      {(hideTabBar) => (
-        <AppShell hideTabBar={hideTabBar} sparkCount={sparkCount}>
+      {({ hideTabBar, hideHeader }) => (
+        <AppShell hideTabBar={hideTabBar} hideHeader={hideHeader} sparkCount={sparkCount}>
           {children}
         </AppShell>
       )}

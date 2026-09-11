@@ -6,10 +6,11 @@ import { TabBar } from './TabBar';
 interface AppShellProps {
   children: React.ReactNode;
   hideTabBar?: boolean;
+  hideHeader?: boolean;
   sparkCount?: number;
 }
 
-export function AppShell({ children, hideTabBar = false, sparkCount }: AppShellProps) {
+export function AppShell({ children, hideTabBar = false, hideHeader = false, sparkCount }: AppShellProps) {
   return (
     <div className="flex flex-col min-h-full">
       <a
@@ -18,7 +19,7 @@ export function AppShell({ children, hideTabBar = false, sparkCount }: AppShellP
       >
         Skip to main content
       </a>
-      <AppHeader sparkCount={sparkCount} />
+      {!hideHeader && <AppHeader sparkCount={sparkCount} />}
       <main
         id="main-content"
         className="flex-1 pb-28 xl:pb-0"

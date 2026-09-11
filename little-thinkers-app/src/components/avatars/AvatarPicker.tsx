@@ -8,18 +8,24 @@ interface AvatarPickerProps {
   onChange: (id: AvatarId) => void;
 }
 
+/** Category cards with 5-column avatar grids (design 4a §4). */
 export function AvatarPicker({ value, onChange }: AvatarPickerProps) {
   return (
-    <div role="radiogroup" aria-label="Choose your character" className="flex flex-col gap-4">
+    <div role="radiogroup" aria-label="Choose your character" className="flex flex-col gap-3">
       {AVATAR_GROUPS.map((group) => (
-        <section key={group.id} aria-label={group.label}>
+        <section
+          key={group.id}
+          aria-label={group.label}
+          className="rounded-[22px] border-[3px] p-[13px]"
+          style={{ backgroundColor: 'var(--theme-card)', borderColor: 'var(--theme-line)' }}
+        >
           <p
             className="text-[11px] font-extrabold uppercase tracking-[.09em] mb-2"
             style={{ color: 'var(--theme-ink)', opacity: 0.55 }}
           >
             {group.label}
           </p>
-          <div className="grid grid-cols-5 gap-[9px]">
+          <div className="grid grid-cols-5 gap-[9px] justify-items-center">
             {group.avatars.map((id) => (
               <button
                 key={id}
@@ -28,9 +34,10 @@ export function AvatarPicker({ value, onChange }: AvatarPickerProps) {
                 aria-checked={value === id}
                 aria-label={`Character ${id}`}
                 onClick={() => onChange(id)}
-                className="flex justify-center transition-transform active:scale-[.88]"
+                className="active:scale-[.88]"
+                style={{ transition: 'transform .16s cubic-bezier(.22,1,.36,1)' }}
               >
-                <Avatar id={id} size={40} selected={value === id} />
+                <Avatar id={id} size={56} selected={value === id} />
               </button>
             ))}
           </div>
