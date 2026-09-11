@@ -8,6 +8,7 @@ import { useAuth } from '@/hooks/useAuth';
 import { useThemeStore } from '@/lib/stores/themeStore';
 import { Avatar } from '@/components/avatars';
 import { ALL_AVATARS } from '@/lib/avatars/manifest';
+import { useAccessibility } from '@/hooks/useAccessibility';
 
 interface AppHeaderProps {
   sparkCount?: number;
@@ -17,6 +18,7 @@ export function AppHeader({ sparkCount = 0 }: AppHeaderProps) {
   const { logout } = useAuth();
   const router = useRouter();
   const { avatar, setAvatar } = useThemeStore();
+  const reducedMotion = useAccessibility().settings.reducedMotion;
   const [modalOpen, setModalOpen] = useState(false);
 
   return (
@@ -138,7 +140,7 @@ export function AppHeader({ sparkCount = 0 }: AppHeaderProps) {
                     setAvatar(id);
                     setModalOpen(false);
                   }}
-                  className="flex justify-center transition-transform active:scale-[.88]"
+                  className={`flex justify-center transition-transform ${reducedMotion ? '' : 'active:scale-[.88]'}`}
                 >
                   <Avatar id={id} size={64} selected={avatar === id} />
                 </button>

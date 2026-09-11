@@ -2,6 +2,7 @@
 
 import { AppHeader } from './AppHeader';
 import { TabBar } from './TabBar';
+import { useAccessibility } from '@/hooks/useAccessibility';
 
 interface AppShellProps {
   children: React.ReactNode;
@@ -11,6 +12,7 @@ interface AppShellProps {
 }
 
 export function AppShell({ children, hideTabBar = false, hideHeader = false, sparkCount }: AppShellProps) {
+  const reducedMotion = useAccessibility().settings.reducedMotion;
   return (
     <div className="flex flex-col min-h-full">
       <a
@@ -23,7 +25,7 @@ export function AppShell({ children, hideTabBar = false, hideHeader = false, spa
       <main
         id="main-content"
         className="flex-1 pb-28 xl:pb-0"
-        style={{ animation: 'fadeSlideUp 300ms cubic-bezier(0.22, 1, 0.36, 1) both' }}
+        style={{ animation: reducedMotion ? undefined : 'fadeSlideUp 400ms cubic-bezier(0.22, 1, 0.36, 1) both' }}
       >
         {children}
       </main>

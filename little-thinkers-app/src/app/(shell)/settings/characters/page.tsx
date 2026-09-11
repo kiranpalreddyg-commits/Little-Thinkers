@@ -6,11 +6,13 @@ import { useAppShell } from '@/components/navigation/AppShellContext';
 import { useThemeStore } from '@/lib/stores/themeStore';
 import { Avatar } from '@/components/avatars';
 import { AvatarPicker } from '@/components/avatars/AvatarPicker';
+import { useAccessibility } from '@/hooks/useAccessibility';
 
 export default function CharactersPage() {
   const router = useRouter();
   const { setHideTabBar, setHideHeader } = useAppShell();
   const { avatar, setAvatar } = useThemeStore();
+  const reducedMotion = useAccessibility().settings.reducedMotion;
 
   // Own header bar, no tab bar — same mechanism gameplay uses.
   useEffect(() => {
@@ -32,7 +34,7 @@ export default function CharactersPage() {
           type="button"
           onClick={() => router.back()}
           aria-label="Back"
-          className="flex h-11 w-11 items-center justify-center rounded-[14px] border-[3px] active:scale-[.88]"
+          className={`flex h-11 w-11 items-center justify-center rounded-[14px] border-[3px] ${reducedMotion ? '' : 'active:scale-[.88]'}`}
           style={{
             backgroundColor: 'var(--theme-tint)',
             borderColor: 'var(--theme-line)',

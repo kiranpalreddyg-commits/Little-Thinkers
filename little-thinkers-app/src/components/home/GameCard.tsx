@@ -1,5 +1,8 @@
+'use client';
+
 import type { ReactNode } from 'react';
 import Link from 'next/link';
+import { useAccessibility } from '@/hooks/useAccessibility';
 
 interface GameCardProps {
   title: string;
@@ -10,10 +13,11 @@ interface GameCardProps {
 }
 
 export function GameCard({ title, description, href, color, icon }: GameCardProps) {
+  const reducedMotion = useAccessibility().settings.reducedMotion;
   return (
     <div
       data-game-color={color}
-      className="relative rounded-[2rem] p-4 flex items-center gap-4 border-[3px] transition-transform active:translate-y-[4px] cursor-pointer"
+      className={`relative rounded-[2rem] p-4 flex items-center gap-4 border-[3px] transition-transform cursor-pointer ${reducedMotion ? '' : 'active:translate-y-[4px]'}`}
       style={{
         backgroundColor: 'var(--theme-card)',
         borderColor: 'var(--theme-line)',

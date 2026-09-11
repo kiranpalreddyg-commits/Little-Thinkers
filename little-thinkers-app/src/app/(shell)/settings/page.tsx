@@ -9,12 +9,14 @@ import { Avatar } from '@/components/avatars';
 import { useThemeStore } from '@/lib/stores/themeStore';
 import { useRewardsStore } from '@/lib/stores/rewardsStore';
 import { AVATAR_COUNT } from '@/lib/avatars/manifest';
+import { useAccessibility } from '@/hooks/useAccessibility';
 
 export default function SettingsPage() {
   const router = useRouter();
   const { isAuthenticated, isLoading, childProfile } = useAuth();
   const avatar = useThemeStore((s) => s.avatar);
   const sparks = useRewardsStore((s) => s.brainJar?.totalSparks ?? 0);
+  const reducedMotion = useAccessibility().settings.reducedMotion;
 
   useEffect(() => {
     if (!isLoading && !isAuthenticated) {
@@ -63,7 +65,7 @@ export default function SettingsPage() {
         {/* Your character → Characters screen */}
         <Link
           href="/settings/characters"
-          className="mb-4 flex items-center justify-between rounded-[22px] border-[3px] px-[13px] py-[11px] transition-transform active:translate-y-[4px]"
+          className={`mb-4 flex items-center justify-between rounded-[22px] border-[3px] px-[13px] py-[11px] transition-transform ${reducedMotion ? '' : 'active:translate-y-[4px]'}`}
           style={{
             backgroundColor: 'var(--theme-card)',
             borderColor: 'var(--theme-line)',

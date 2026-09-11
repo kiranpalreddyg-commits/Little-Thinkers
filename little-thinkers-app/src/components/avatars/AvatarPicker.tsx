@@ -2,6 +2,7 @@
 
 import { AVATAR_GROUPS, type AvatarId } from '@/lib/avatars/manifest';
 import { Avatar } from './Avatar';
+import { useAccessibility } from '@/hooks/useAccessibility';
 
 interface AvatarPickerProps {
   value: AvatarId;
@@ -10,6 +11,7 @@ interface AvatarPickerProps {
 
 /** Category cards with 5-column avatar grids (design 4a §4). */
 export function AvatarPicker({ value, onChange }: AvatarPickerProps) {
+  const reducedMotion = useAccessibility().settings.reducedMotion;
   return (
     <div role="radiogroup" aria-label="Choose your character" className="flex flex-col gap-3">
       {AVATAR_GROUPS.map((group) => (
@@ -34,7 +36,7 @@ export function AvatarPicker({ value, onChange }: AvatarPickerProps) {
                 aria-checked={value === id}
                 aria-label={`Character ${id}`}
                 onClick={() => onChange(id)}
-                className="active:scale-[.88]"
+                className={reducedMotion ? '' : 'active:scale-[.88]'}
                 style={{ transition: 'transform .16s cubic-bezier(.22,1,.36,1)' }}
               >
                 <Avatar id={id} size={56} selected={value === id} />

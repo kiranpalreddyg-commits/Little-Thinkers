@@ -2,12 +2,14 @@
 
 import { THEMES } from '@/lib/theme/themes';
 import { useThemeStore } from '@/lib/stores/themeStore';
+import { useAccessibility } from '@/hooks/useAccessibility';
 
 /** 24-swatch theme picker card (design 4a §2). */
 export function ThemeGrid() {
   const theme = useThemeStore((s) => s.theme);
   const setTheme = useThemeStore((s) => s.setTheme);
   const current = THEMES.find((t) => t.id === theme);
+  const reducedMotion = useAccessibility().settings.reducedMotion;
 
   return (
     <section
@@ -37,7 +39,7 @@ export function ThemeGrid() {
               aria-checked={selected}
               aria-label={t.name}
               onClick={() => setTheme(t.id)}
-              className="flex h-[34px] w-[34px] overflow-hidden rounded-full border-[3px] active:scale-[.88]"
+              className={`flex h-[34px] w-[34px] overflow-hidden rounded-full border-[3px] ${reducedMotion ? '' : 'active:scale-[.88]'}`}
               style={{
                 borderColor: selected ? 'var(--theme-accent)' : 'var(--theme-tint)',
                 transition: 'transform .16s cubic-bezier(.22,1,.36,1)',
