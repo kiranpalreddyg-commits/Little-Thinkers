@@ -24,8 +24,8 @@ export function AppHeader({ sparkCount = 0 }: AppHeaderProps) {
   return (
     <>
       <header
-        className="sticky top-0 z-40 bg-white/95 backdrop-blur-md border-b-[3px] shadow-md"
-        style={{ borderColor: 'var(--theme-border)' }}
+        className="sticky top-0 z-40 border-b-[3px] shadow-md"
+        style={{ backgroundColor: 'var(--theme-card)', borderColor: 'var(--theme-line)' }}
       >
         <div className="flex items-center justify-between px-4 h-16 gap-3">
           {/* Left: logo icon + brand name */}
@@ -37,7 +37,7 @@ export function AppHeader({ sparkCount = 0 }: AppHeaderProps) {
             >
               <span
                 className="text-xl font-black tracking-tight"
-                style={{ color: 'var(--theme-text)' }}
+                style={{ color: 'var(--theme-ink)' }}
               >
                 Little Thinkers
               </span>
@@ -47,9 +47,10 @@ export function AppHeader({ sparkCount = 0 }: AppHeaderProps) {
           {/* Right: sparks + avatar + palette + sign out */}
           <div className="flex items-center gap-2">
             <div
-              className="flex items-center gap-1.5 bg-white px-3 py-1.5 rounded-2xl border-[3px]"
+              className="flex items-center gap-1.5 px-3 py-1.5 rounded-2xl border-[3px]"
               style={{
-                borderColor: 'var(--theme-border)',
+                backgroundColor: 'var(--theme-card)',
+                borderColor: 'var(--theme-line)',
                 boxShadow: '0 4px 0 var(--theme-shadow)',
               }}
             >
@@ -57,7 +58,7 @@ export function AppHeader({ sparkCount = 0 }: AppHeaderProps) {
               <span
                 data-testid="spark-count"
                 className="font-black text-sm"
-                style={{ color: 'var(--theme-text)' }}
+                style={{ color: 'var(--theme-ink)' }}
                 aria-live="polite"
                 aria-atomic="true"
               >
@@ -70,9 +71,10 @@ export function AppHeader({ sparkCount = 0 }: AppHeaderProps) {
               onClick={() => setModalOpen(true)}
               aria-label="Choose avatar"
               data-testid="avatar"
-              className="w-11 h-11 bg-white rounded-2xl border-[3px] flex items-center justify-center overflow-hidden transition-transform active:scale-95"
+              className="w-11 h-11 rounded-2xl border-[3px] flex items-center justify-center overflow-hidden transition-transform active:scale-95"
               style={{
-                borderColor: 'var(--theme-border)',
+                backgroundColor: 'var(--theme-tint)',
+                borderColor: 'var(--theme-line)',
                 boxShadow: '0 4px 0 var(--theme-shadow)',
               }}
             >
@@ -85,9 +87,9 @@ export function AppHeader({ sparkCount = 0 }: AppHeaderProps) {
               aria-label="Change color theme"
               className="w-10 h-10 rounded-xl border-[3px] flex items-center justify-center transition-transform active:scale-95"
               style={{
-                borderColor: 'var(--theme-border)',
-                color: 'var(--theme-text)',
-                backgroundColor: 'var(--theme-card-bg)',
+                borderColor: 'var(--theme-line)',
+                color: 'var(--theme-ink)',
+                backgroundColor: 'var(--theme-tint)',
               }}
             >
               <Palette size={18} />
@@ -96,7 +98,8 @@ export function AppHeader({ sparkCount = 0 }: AppHeaderProps) {
             <button
               type="button"
               onClick={() => { logout(); router.push('/login'); }}
-              className="text-xs text-slate-400 hover:text-slate-600 transition-colors px-2 py-1 rounded focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--color-brand)]"
+              style={{ color: 'var(--theme-muted)' }}
+              className="text-xs hover:opacity-70 transition-opacity px-2 py-1 rounded focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--color-brand)]"
             >
               Out
             </button>
@@ -111,9 +114,10 @@ export function AppHeader({ sparkCount = 0 }: AppHeaderProps) {
           onClick={() => setModalOpen(false)}
         >
           <div
-            className="bg-white w-full max-w-sm rounded-[2rem] border-[3px] p-6 relative"
+            className="w-full max-w-sm rounded-[2rem] border-[3px] p-6 relative"
             style={{
-              borderColor: 'var(--theme-border)',
+              backgroundColor: 'var(--theme-card)',
+              borderColor: 'var(--theme-line)',
               boxShadow: '0 12px 0 var(--theme-shadow)',
             }}
             onClick={(e) => e.stopPropagation()}
@@ -127,7 +131,7 @@ export function AppHeader({ sparkCount = 0 }: AppHeaderProps) {
             </button>
             <h3
               className="text-2xl font-black mb-6 text-center"
-              style={{ color: 'var(--theme-text)' }}
+              style={{ color: 'var(--theme-ink)' }}
             >
               Choose your friend!
             </h3>
@@ -143,7 +147,7 @@ export function AppHeader({ sparkCount = 0 }: AppHeaderProps) {
                     avatar === id ? 'bg-slate-50' : 'bg-white'
                   }`}
                   style={{
-                    borderColor: avatar === id ? 'var(--theme-border)' : '#E2E8F0',
+                    borderColor: avatar === id ? 'var(--theme-line)' : '#E2E8F0',
                   }}
                 >
                   <AvatarComp className="w-20 h-20 mb-2" />

@@ -136,10 +136,10 @@ export default function HomePage() {
         <section
           aria-labelledby="content-heading"
           className="bg-white rounded-[2rem] border-[3px] p-6"
-          style={{ borderColor: 'var(--theme-border)', boxShadow: '0 8px 0 var(--theme-shadow)' }}
+          style={{ borderColor: 'var(--theme-line)', boxShadow: '0 8px 0 var(--theme-shadow)' }}
         >
           <div className="flex flex-wrap items-center justify-between gap-4 mb-6">
-            <h2 id="content-heading" className="text-2xl font-bold" style={{ color: 'var(--theme-text)' }}>
+            <h2 id="content-heading" className="text-2xl font-bold text-slate-900">
               Explore &amp; Learn
             </h2>
             <ContentFilterBar filter={filter} onFilterChange={setFilter} />

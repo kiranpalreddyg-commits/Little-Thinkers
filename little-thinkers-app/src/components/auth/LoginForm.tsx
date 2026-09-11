@@ -108,8 +108,8 @@ export const LoginForm: React.FC<LoginFormProps> = ({ onSuccess }) => {
         <button
           type="submit"
           disabled={isLoading || !email.trim() || !password.trim()}
-          className="w-full text-white py-3 px-4 rounded-xl border-[3px] font-black text-base transition-opacity disabled:opacity-50 disabled:cursor-not-allowed min-h-[48px]"
-          style={{ backgroundColor: 'var(--theme-border)', borderColor: 'var(--theme-shadow)', boxShadow: '0 4px 0 var(--theme-shadow)' }}
+          className="w-full py-3 px-4 rounded-xl border-[3px] font-black text-base transition-opacity disabled:opacity-50 disabled:cursor-not-allowed min-h-[48px]"
+          style={{ backgroundColor: 'var(--theme-accent)', color: 'var(--theme-on-accent)', borderColor: 'var(--theme-line)', boxShadow: '0 4px 0 var(--theme-shadow)' }}
         >
           {isLoading ? (
             <div className="flex items-center justify-center">
@@ -131,7 +131,7 @@ export const LoginForm: React.FC<LoginFormProps> = ({ onSuccess }) => {
           <Link
             href="/signup"
             className="font-bold hover:opacity-70 transition-opacity"
-            style={{ color: 'var(--theme-border)' }}
+            style={{ color: 'var(--theme-accent)' }}
           >
             Create one
           </Link>

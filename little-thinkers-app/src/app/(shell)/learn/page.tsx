@@ -69,7 +69,7 @@ export default function LearnPage() {
 
         <div
           className="bg-white rounded-[2rem] border-[3px] p-6"
-          style={{ borderColor: 'var(--theme-border)', boxShadow: '0 8px 0 var(--theme-shadow)' }}
+          style={{ borderColor: 'var(--theme-line)', boxShadow: '0 8px 0 var(--theme-shadow)' }}
         >
           <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
             <ContentSection

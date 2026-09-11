@@ -13,9 +13,10 @@ export function GameCard({ title, description, href, color, icon }: GameCardProp
   return (
     <div
       data-game-color={color}
-      className="relative bg-white rounded-[2rem] p-4 flex items-center gap-4 border-[3px] transition-transform active:translate-y-[4px] cursor-pointer"
+      className="relative rounded-[2rem] p-4 flex items-center gap-4 border-[3px] transition-transform active:translate-y-[4px] cursor-pointer"
       style={{
-        borderColor: 'var(--theme-border)',
+        backgroundColor: 'var(--theme-card)',
+        borderColor: 'var(--theme-line)',
         boxShadow: '0 6px 0 var(--theme-shadow)',
       }}
     >
@@ -23,9 +24,9 @@ export function GameCard({ title, description, href, color, icon }: GameCardProp
         aria-hidden="true"
         className="w-14 h-14 rounded-[1rem] border-[3px] flex items-center justify-center shrink-0"
         style={{
-          backgroundColor: 'var(--theme-card-bg)',
-          borderColor: 'var(--theme-border)',
-          color: 'var(--theme-text)',
+          backgroundColor: 'var(--theme-tint)',
+          borderColor: 'var(--theme-line)',
+          color: 'var(--theme-ink)',
         }}
       >
         {icon}
@@ -33,11 +34,11 @@ export function GameCard({ title, description, href, color, icon }: GameCardProp
       <div className="flex-1 min-w-0">
         <h3
           className="font-black text-base leading-tight"
-          style={{ color: 'var(--theme-text)' }}
+          style={{ color: 'var(--theme-ink)' }}
         >
           {title}
         </h3>
-        <p className="text-sm font-medium text-slate-500 mt-0.5 line-clamp-2">{description}</p>
+        <p className="text-sm font-medium mt-0.5 line-clamp-2" style={{ color: 'var(--theme-muted)' }}>{description}</p>
       </div>
       <Link
         href={href}
