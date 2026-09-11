@@ -6,8 +6,8 @@ import { useRouter } from 'next/navigation';
 import { Palette, X } from 'lucide-react';
 import { useAuth } from '@/hooks/useAuth';
 import { useThemeStore } from '@/lib/stores/themeStore';
-import { AVATARS } from '@/components/avatars';
-import type { AvatarId } from '@/lib/stores/themeStore';
+import { Avatar } from '@/components/avatars';
+import { ALL_AVATARS } from '@/lib/avatars/manifest';
 
 interface AppHeaderProps {
   sparkCount?: number;
@@ -18,8 +18,6 @@ export function AppHeader({ sparkCount = 0 }: AppHeaderProps) {
   const router = useRouter();
   const { cycleTheme, avatar, setAvatar } = useThemeStore();
   const [modalOpen, setModalOpen] = useState(false);
-  const avatarEntry = AVATARS.find((a) => a.id === avatar) ?? AVATARS[0];
-  const ActiveAvatar = avatarEntry.component;
 
   return (
     <>
@@ -71,14 +69,9 @@ export function AppHeader({ sparkCount = 0 }: AppHeaderProps) {
               onClick={() => setModalOpen(true)}
               aria-label="Choose avatar"
               data-testid="avatar"
-              className="w-11 h-11 rounded-2xl border-[3px] flex items-center justify-center overflow-hidden transition-transform active:scale-95"
-              style={{
-                backgroundColor: 'var(--theme-tint)',
-                borderColor: 'var(--theme-line)',
-                boxShadow: '0 4px 0 var(--theme-shadow)',
-              }}
+              className="rounded-full transition-transform active:scale-95"
             >
-              <ActiveAvatar className="w-8 h-8 mt-1" />
+              <Avatar id={avatar} size={44} />
             </button>
 
             <button
@@ -135,23 +128,20 @@ export function AppHeader({ sparkCount = 0 }: AppHeaderProps) {
             >
               Choose your friend!
             </h3>
-            <div className="grid grid-cols-2 gap-3 max-h-80 overflow-y-auto">
-              {AVATARS.map(({ id, component: AvatarComp, name }) => (
+            <div className="grid grid-cols-4 gap-3 max-h-80 overflow-y-auto">
+              {ALL_AVATARS.map((id) => (
                 <button
                   key={id}
+                  type="button"
+                  aria-label={`Character ${id}`}
+                  aria-pressed={avatar === id}
                   onClick={() => {
-                    setAvatar(id as AvatarId);
+                    setAvatar(id);
                     setModalOpen(false);
                   }}
-                  className={`flex flex-col items-center justify-center p-4 rounded-[1.5rem] border-[3px] transition-transform active:scale-95 ${
-                    avatar === id ? 'bg-slate-50' : 'bg-white'
-                  }`}
-                  style={{
-                    borderColor: avatar === id ? 'var(--theme-line)' : '#E2E8F0',
-                  }}
+                  className="flex justify-center transition-transform active:scale-[.88]"
                 >
-                  <AvatarComp className="w-20 h-20 mb-2" />
-                  <span className="font-bold text-slate-700 text-sm">{name}</span>
+                  <Avatar id={id} size={64} selected={avatar === id} />
                 </button>
               ))}
             </div>

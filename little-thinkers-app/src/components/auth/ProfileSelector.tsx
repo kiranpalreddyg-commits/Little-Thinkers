@@ -4,16 +4,15 @@ import { useState } from 'react';
 import { useAuth } from '@/hooks/useAuth';
 import { useChildProfiles } from '@/hooks/useAuth';
 import { ChildProfile } from '@/lib/types/auth';
-import { AvatarCard } from '@/components/avatars/AvatarCard';
-import { AVATARS } from '@/components/avatars';
-import type { AvatarId } from '@/lib/stores/themeStore';
+import { Avatar } from '@/components/avatars';
+import { ALL_AVATARS, type AvatarId } from '@/lib/avatars/manifest';
 
 function avatarIdForProfile(profileId: string): AvatarId {
   let hash = 0;
   for (let i = 0; i < profileId.length; i++) {
     hash = (hash * 31 + profileId.charCodeAt(i)) & 0xffffffff;
   }
-  return AVATARS[Math.abs(hash) % AVATARS.length].id as AvatarId;
+  return ALL_AVATARS[Math.abs(hash) % ALL_AVATARS.length];
 }
 
 interface ProfileSelectorProps {
@@ -96,9 +95,9 @@ export const ProfileSelector: React.FC<ProfileSelectorProps> = ({ onProfileSelec
             <div className="flex flex-col items-center text-center">
               {/* Avatar */}
               <div className="mb-4">
-                <AvatarCard
-                  avatarId={avatarIdForProfile(profile.id)}
-                  size="md"
+                <Avatar
+                  id={avatarIdForProfile(profile.id)}
+                  size={80}
                   selected={selectedProfile?.id === profile.id}
                 />
               </div>

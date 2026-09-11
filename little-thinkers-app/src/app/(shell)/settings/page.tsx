@@ -5,7 +5,7 @@ import { useAuth } from '@/hooks/useAuth';
 import { AccessibilitySettings } from '@/components/settings/AccessibilitySettings';
 import { AvatarPicker } from '@/components/avatars/AvatarPicker';
 import { useThemeStore } from '@/lib/stores/themeStore';
-import type { AvatarId } from '@/lib/stores/themeStore';
+import type { AvatarId } from '@/lib/avatars/manifest';
 
 export default function SettingsPage() {
   const router = useRouter();

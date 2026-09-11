@@ -2,7 +2,7 @@
 
 import type { CSSProperties } from 'react';
 import { useThemeStore } from '@/lib/stores/themeStore';
-import { AVATARS } from '@/components/avatars';
+import { Avatar } from '@/components/avatars';
 
 interface HeroSectionProps {
   childName: string;
@@ -35,8 +35,6 @@ function Cloud({ className, style }: { className?: string; style?: CSSProperties
 
 export function HeroSection({ childName, streakCount = 0 }: HeroSectionProps) {
   const { avatar } = useThemeStore();
-  const avatarEntry = AVATARS.find((a) => a.id === avatar) ?? AVATARS[0];
-  const ActiveAvatar = avatarEntry.component;
 
   return (
     <div className="relative flex flex-col items-center text-center pt-6 pb-4 px-4 gap-3">
@@ -59,10 +57,10 @@ export function HeroSection({ childName, streakCount = 0 }: HeroSectionProps) {
         data-testid="mascot"
         role="img"
         aria-label="mascot character"
-        className="relative z-10 w-40 h-40"
+        className="relative z-10"
         style={{ animation: 'float 5s ease-in-out infinite' }}
       >
-        <ActiveAvatar className="w-full h-full drop-shadow-2xl" />
+        <Avatar id={avatar} size={124} />
       </div>
 
       <div className="flex flex-col items-center gap-1 relative z-10">

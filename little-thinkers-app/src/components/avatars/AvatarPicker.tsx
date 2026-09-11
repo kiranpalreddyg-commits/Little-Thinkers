@@ -1,8 +1,7 @@
 'use client';
 
-import { AVATARS } from './index';
-import { AvatarCard } from './AvatarCard';
-import type { AvatarId } from '@/lib/stores/themeStore';
+import { AVATAR_GROUPS, type AvatarId } from '@/lib/avatars/manifest';
+import { Avatar } from './Avatar';
 
 interface AvatarPickerProps {
   value: AvatarId;
@@ -11,28 +10,31 @@ interface AvatarPickerProps {
 
 export function AvatarPicker({ value, onChange }: AvatarPickerProps) {
   return (
-    <div
-      className="grid grid-cols-4 gap-3"
-      role="radiogroup"
-      aria-label="Choose your character"
-    >
-      {AVATARS.map((entry) => (
-        <div key={entry.id} className="flex flex-col items-center gap-1.5">
-          <AvatarCard
-            avatarId={entry.id}
-            size="lg"
-            selected={value === entry.id}
-            onClick={() => onChange(entry.id)}
-          />
-          <span
-            className="text-[10px] font-semibold text-center leading-tight"
-            style={{ color: entry.accent }}
+    <div role="radiogroup" aria-label="Choose your character" className="flex flex-col gap-4">
+      {AVATAR_GROUPS.map((group) => (
+        <section key={group.id} aria-label={group.label}>
+          <p
+            className="text-[11px] font-extrabold uppercase tracking-[.09em] mb-2"
+            style={{ color: 'var(--theme-ink)', opacity: 0.55 }}
           >
-            {entry.name.split(' ').map((word, i) => (
-              <span key={i} className="block">{word}</span>
+            {group.label}
+          </p>
+          <div className="grid grid-cols-5 gap-[9px]">
+            {group.avatars.map((id) => (
+              <button
+                key={id}
+                type="button"
+                role="radio"
+                aria-checked={value === id}
+                aria-label={`Character ${id}`}
+                onClick={() => onChange(id)}
+                className="flex justify-center transition-transform active:scale-[.88]"
+              >
+                <Avatar id={id} size={40} selected={value === id} />
+              </button>
             ))}
-          </span>
-        </div>
+          </div>
+        </section>
       ))}
     </div>
   );
