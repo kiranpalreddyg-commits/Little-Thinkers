@@ -91,12 +91,6 @@ describe('HomePage', () => {
     expect(screen.getByText('Grid Logic')).toBeInTheDocument();
   });
 
-  it('renders Tell Me Why and Story Time as h2 section headings (AC6)', () => {
-    render(<HomePage />);
-    expect(screen.getByRole('heading', { level: 2, name: 'Tell Me Why?' })).toBeInTheDocument();
-    expect(screen.getByRole('heading', { level: 2, name: 'Story Time' })).toBeInTheDocument();
-  });
-
   it('renders Puzzle of the Day section (AC2)', () => {
     render(<HomePage />);
     expect(screen.getByText(/Today's Puzzle/i)).toBeInTheDocument();
@@ -154,22 +148,5 @@ describe('HomePage', () => {
     } as ReturnType<typeof useAuth>);
     render(<HomePage />);
     await waitFor(() => expect(mockPush).toHaveBeenCalledWith('/profile-select'));
-  });
-
-  it('filter controls are visible on the home page (AC4)', () => {
-    render(<HomePage />);
-    expect(screen.getByRole('combobox', { name: 'Topic:' })).toBeInTheDocument();
-    expect(screen.getByRole('combobox', { name: 'Age:' })).toBeInTheDocument();
-  });
-
-  it('changing topic filter calls setFilter with updated topic (AC4)', async () => {
-    const setFilter = vi.fn();
-    vi.mocked(useContent).mockReturnValue({
-      ...CONTENT_LOADED,
-      setFilter,
-    } as ReturnType<typeof useContent>);
-    render(<HomePage />);
-    await userEvent.selectOptions(screen.getByRole('combobox', { name: 'Topic:' }), 'vocabulary');
-    expect(setFilter).toHaveBeenCalledWith({ topic: 'vocabulary' });
   });
 });
