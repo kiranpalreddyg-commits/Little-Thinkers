@@ -144,11 +144,11 @@ export default function PlayPage() {
 
         <h1
           className="text-3xl font-black text-center mb-2 drop-shadow-md"
-          style={{ color: 'var(--theme-text)' }}
+          style={{ color: 'var(--theme-on-ground)' }}
         >
           {game.name}
         </h1>
-        <p className="text-center mb-8 font-semibold" style={{ color: 'var(--theme-text)', opacity: 0.75 }}>
+        <p className="text-center mb-8 font-semibold" style={{ color: 'var(--theme-on-ground)', opacity: 0.75 }}>
           {game.description}
         </p>
 
@@ -177,8 +177,8 @@ export default function PlayPage() {
             type="button"
             onClick={() => router.push('/')}
             aria-label="Back to home"
-            className="px-6 py-3 bg-white border-[3px] font-black rounded-[1.5rem] transition-transform active:translate-y-[2px] min-h-[44px]"
-            style={{ borderColor: 'var(--theme-border)', color: 'var(--theme-text)', boxShadow: '0 4px 0 var(--theme-shadow)' }}
+            className="px-6 py-3 border-[3px] font-black rounded-[1.5rem] transition-transform active:translate-y-[2px] min-h-[44px]"
+            style={{ backgroundColor: 'var(--theme-card)', borderColor: 'var(--theme-line)', color: 'var(--theme-ink)', boxShadow: '0 4px 0 var(--theme-shadow)' }}
           >
             Back
           </button>
@@ -189,8 +189,8 @@ export default function PlayPage() {
             aria-disabled={!acknowledged}
             aria-describedby={!acknowledged ? 'start-hint' : undefined}
             disabled={!acknowledged}
-            className="flex-1 px-6 py-4 font-black rounded-[1.5rem] text-lg text-white transition-transform active:translate-y-[2px] min-h-[56px] disabled:opacity-50 disabled:cursor-not-allowed"
-            style={{ backgroundColor: 'var(--theme-border)', boxShadow: '0 6px 0 var(--theme-shadow)' }}
+            className="flex-1 px-6 py-4 font-black rounded-[1.5rem] text-lg transition-transform active:translate-y-[2px] min-h-[56px] disabled:opacity-50 disabled:cursor-not-allowed"
+            style={{ backgroundColor: 'var(--theme-accent)', color: 'var(--theme-on-accent)', boxShadow: '0 6px 0 var(--theme-shadow)' }}
           >
             Start Game
           </button>

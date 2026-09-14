@@ -319,8 +319,8 @@ function GameplayPageInner() {
                 type="button"
                 onClick={() => handleAnswer(opt === currentQuestion.correct)}
                 disabled={isPaused}
-                className="px-6 py-3 text-white font-black rounded-xl border-[3px] transition-transform active:translate-y-[2px] min-h-[44px] min-w-[56px] disabled:opacity-50 disabled:cursor-not-allowed focus:outline-none focus-visible:ring-4 focus-visible:ring-offset-2 focus-visible:ring-[var(--theme-border)]"
-              style={{ backgroundColor: 'var(--theme-border)', borderColor: 'var(--theme-shadow)', boxShadow: '0 4px 0 var(--theme-shadow)' }}
+                className="px-6 py-3 font-black rounded-xl border-[3px] transition-transform active:translate-y-[2px] min-h-[44px] min-w-[56px] disabled:opacity-50 disabled:cursor-not-allowed focus:outline-none focus-visible:ring-4 focus-visible:ring-offset-2 focus-visible:ring-[var(--theme-accent)]"
+              style={{ backgroundColor: 'var(--theme-accent)', color: 'var(--theme-on-accent)', borderColor: 'var(--theme-line)', boxShadow: '0 4px 0 var(--theme-shadow)' }}
               >
                 {opt}
               </button>

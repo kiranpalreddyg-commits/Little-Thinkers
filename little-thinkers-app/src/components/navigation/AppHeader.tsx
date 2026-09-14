@@ -6,8 +6,9 @@ import { useRouter } from 'next/navigation';
 import { Palette, X } from 'lucide-react';
 import { useAuth } from '@/hooks/useAuth';
 import { useThemeStore } from '@/lib/stores/themeStore';
-import { AVATARS } from '@/components/avatars';
-import type { AvatarId } from '@/lib/stores/themeStore';
+import { Avatar } from '@/components/avatars';
+import { ALL_AVATARS } from '@/lib/avatars/manifest';
+import { useAccessibility } from '@/hooks/useAccessibility';
 
 interface AppHeaderProps {
   sparkCount?: number;
@@ -16,16 +17,15 @@ interface AppHeaderProps {
 export function AppHeader({ sparkCount = 0 }: AppHeaderProps) {
   const { logout } = useAuth();
   const router = useRouter();
-  const { cycleTheme, avatar, setAvatar } = useThemeStore();
+  const { avatar, setAvatar } = useThemeStore();
+  const reducedMotion = useAccessibility().settings.reducedMotion;
   const [modalOpen, setModalOpen] = useState(false);
-  const avatarEntry = AVATARS.find((a) => a.id === avatar) ?? AVATARS[0];
-  const ActiveAvatar = avatarEntry.component;
 
   return (
     <>
       <header
-        className="sticky top-0 z-40 bg-white/95 backdrop-blur-md border-b-[3px] shadow-md"
-        style={{ borderColor: 'var(--theme-border)' }}
+        className="sticky top-0 z-40 border-b-[3px] shadow-md"
+        style={{ backgroundColor: 'var(--theme-card)', borderColor: 'var(--theme-line)' }}
       >
         <div className="flex items-center justify-between px-4 h-16 gap-3">
           {/* Left: logo icon + brand name */}
@@ -37,7 +37,7 @@ export function AppHeader({ sparkCount = 0 }: AppHeaderProps) {
             >
               <span
                 className="text-xl font-black tracking-tight"
-                style={{ color: 'var(--theme-text)' }}
+                style={{ color: 'var(--theme-ink)' }}
               >
                 Little Thinkers
               </span>
@@ -47,9 +47,10 @@ export function AppHeader({ sparkCount = 0 }: AppHeaderProps) {
           {/* Right: sparks + avatar + palette + sign out */}
           <div className="flex items-center gap-2">
             <div
-              className="flex items-center gap-1.5 bg-white px-3 py-1.5 rounded-2xl border-[3px]"
+              className="flex items-center gap-1.5 px-3 py-1.5 rounded-2xl border-[3px]"
               style={{
-                borderColor: 'var(--theme-border)',
+                backgroundColor: 'var(--theme-card)',
+                borderColor: 'var(--theme-line)',
                 boxShadow: '0 4px 0 var(--theme-shadow)',
               }}
             >
@@ -57,7 +58,7 @@ export function AppHeader({ sparkCount = 0 }: AppHeaderProps) {
               <span
                 data-testid="spark-count"
                 className="font-black text-sm"
-                style={{ color: 'var(--theme-text)' }}
+                style={{ color: 'var(--theme-ink)' }}
                 aria-live="polite"
                 aria-atomic="true"
               >
@@ -70,33 +71,29 @@ export function AppHeader({ sparkCount = 0 }: AppHeaderProps) {
               onClick={() => setModalOpen(true)}
               aria-label="Choose avatar"
               data-testid="avatar"
-              className="w-11 h-11 bg-white rounded-2xl border-[3px] flex items-center justify-center overflow-hidden transition-transform active:scale-95"
-              style={{
-                borderColor: 'var(--theme-border)',
-                boxShadow: '0 4px 0 var(--theme-shadow)',
-              }}
+              className="rounded-full transition-transform active:scale-95"
             >
-              <ActiveAvatar className="w-8 h-8 mt-1" />
+              <Avatar id={avatar} size={44} />
             </button>
 
-            <button
-              type="button"
-              onClick={cycleTheme}
+            <Link
+              href="/settings"
               aria-label="Change color theme"
               className="w-10 h-10 rounded-xl border-[3px] flex items-center justify-center transition-transform active:scale-95"
               style={{
-                borderColor: 'var(--theme-border)',
-                color: 'var(--theme-text)',
-                backgroundColor: 'var(--theme-card-bg)',
+                borderColor: 'var(--theme-line)',
+                color: 'var(--theme-ink)',
+                backgroundColor: 'var(--theme-tint)',
               }}
             >
               <Palette size={18} />
-            </button>
+            </Link>
 
             <button
               type="button"
               onClick={() => { logout(); router.push('/login'); }}
-              className="text-xs text-slate-400 hover:text-slate-600 transition-colors px-2 py-1 rounded focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--color-brand)]"
+              style={{ color: 'var(--theme-muted)' }}
+              className="text-xs hover:opacity-70 transition-opacity px-2 py-1 rounded focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--color-brand)]"
             >
               Out
             </button>
@@ -111,9 +108,10 @@ export function AppHeader({ sparkCount = 0 }: AppHeaderProps) {
           onClick={() => setModalOpen(false)}
         >
           <div
-            className="bg-white w-full max-w-sm rounded-[2rem] border-[3px] p-6 relative"
+            className="w-full max-w-sm rounded-[2rem] border-[3px] p-6 relative"
             style={{
-              borderColor: 'var(--theme-border)',
+              backgroundColor: 'var(--theme-card)',
+              borderColor: 'var(--theme-line)',
               boxShadow: '0 12px 0 var(--theme-shadow)',
             }}
             onClick={(e) => e.stopPropagation()}
@@ -127,27 +125,24 @@ export function AppHeader({ sparkCount = 0 }: AppHeaderProps) {
             </button>
             <h3
               className="text-2xl font-black mb-6 text-center"
-              style={{ color: 'var(--theme-text)' }}
+              style={{ color: 'var(--theme-ink)' }}
             >
               Choose your friend!
             </h3>
-            <div className="grid grid-cols-2 gap-3 max-h-80 overflow-y-auto">
-              {AVATARS.map(({ id, component: AvatarComp, name }) => (
+            <div className="grid grid-cols-4 gap-3 max-h-80 overflow-y-auto">
+              {ALL_AVATARS.map((id) => (
                 <button
                   key={id}
+                  type="button"
+                  aria-label={`Character ${id}`}
+                  aria-pressed={avatar === id}
                   onClick={() => {
-                    setAvatar(id as AvatarId);
+                    setAvatar(id);
                     setModalOpen(false);
                   }}
-                  className={`flex flex-col items-center justify-center p-4 rounded-[1.5rem] border-[3px] transition-transform active:scale-95 ${
-                    avatar === id ? 'bg-slate-50' : 'bg-white'
-                  }`}
-                  style={{
-                    borderColor: avatar === id ? 'var(--theme-border)' : '#E2E8F0',
-                  }}
+                  className={`flex justify-center transition-transform ${reducedMotion ? '' : 'active:scale-[.88]'}`}
                 >
-                  <AvatarComp className="w-20 h-20 mb-2" />
-                  <span className="font-bold text-slate-700 text-sm">{name}</span>
+                  <Avatar id={id} size={64} selected={avatar === id} />
                 </button>
               ))}
             </div>

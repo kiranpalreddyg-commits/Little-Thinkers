@@ -32,15 +32,15 @@ export function DifficultySelector({ difficulties, selected, onSelect }: Difficu
               style={
                 isSelected
                   ? {
-                      backgroundColor: 'var(--theme-border)',
-                      borderColor: 'var(--theme-shadow)',
-                      color: 'white',
+                      backgroundColor: 'var(--theme-accent)',
+                      borderColor: 'var(--theme-line)',
+                      color: 'var(--theme-on-accent)',
                       boxShadow: '0 4px 0 var(--theme-shadow)',
                     }
                   : {
-                      backgroundColor: 'white',
-                      borderColor: 'var(--theme-border)',
-                      color: 'var(--theme-text)',
+                      backgroundColor: 'var(--theme-card)',
+                      borderColor: 'var(--theme-line)',
+                      color: 'var(--theme-ink)',
                       boxShadow: '0 4px 0 var(--theme-shadow)',
                     }
               }

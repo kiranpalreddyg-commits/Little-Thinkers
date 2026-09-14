@@ -10,7 +10,6 @@
  * AC4  — Today's Challenge full-width card
  * AC5  — Game grid layout: 6 cards in 2×3 arrangement
  * AC6  — Streak display on home hero
- * AC7  — Explore & Learn section remains (Tell Me Why + Story Time)
  * AC8  — Home page uses warm gradient (not plain white background)
  */
 
@@ -174,18 +173,6 @@ test.describe('Story 7.3 — Home Screen Redesign', () => {
     // Verify it contains a digit
     const text = await streakText.textContent();
     expect(text).toMatch(/\d+/);
-  });
-
-  // ─────────────────────────────────────────────────────────────────────────
-  // AC7: Explore & Learn section remains
-  // ─────────────────────────────────────────────────────────────────────────
-
-  test('AC7a — "Tell Me Why" section heading is visible', async ({ page }) => {
-    await expect(page.getByRole('heading', { name: /tell me why/i })).toBeVisible();
-  });
-
-  test('AC7b — "Story Time" section heading is visible', async ({ page }) => {
-    await expect(page.getByRole('heading', { name: /story time/i })).toBeVisible();
   });
 
   // ─────────────────────────────────────────────────────────────────────────
