@@ -4,6 +4,9 @@ const nextConfig: NextConfig = {
   experimental: {
     // Tree-shake lucide-react and other icon libraries at module level
     optimizePackageImports: ['lucide-react'],
+    // Disabled: on an 8 GB Mac the persistent Turbopack dev cache wrote >100 MB/s
+    // to .next/dev/cache and drove the machine into swap-thrash kernel panics.
+    turbopackFileSystemCacheForDev: false,
   },
   // PostHog reverse proxy — routes analytics through this domain to avoid ad-blockers
   async rewrites() {

@@ -38,7 +38,7 @@ export default function RootLayout({
   return (
     <html
       lang="en"
-      data-theme="sunshine"
+      data-theme="cocoa"
       className={`${fredoka.variable} ${nunito.variable} h-full antialiased`}
     >
       <head>

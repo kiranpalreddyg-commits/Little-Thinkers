@@ -1,38 +1,49 @@
 'use client';
 
-import { AVATARS } from './index';
-import { AvatarCard } from './AvatarCard';
-import type { AvatarId } from '@/lib/stores/themeStore';
+import { AVATAR_GROUPS, type AvatarId } from '@/lib/avatars/manifest';
+import { Avatar } from './Avatar';
+import { useAccessibility } from '@/hooks/useAccessibility';
 
 interface AvatarPickerProps {
   value: AvatarId;
   onChange: (id: AvatarId) => void;
 }
 
+/** Category cards with 5-column avatar grids (design 4a §4). */
 export function AvatarPicker({ value, onChange }: AvatarPickerProps) {
+  const reducedMotion = useAccessibility().settings.reducedMotion;
   return (
-    <div
-      className="grid grid-cols-4 gap-3"
-      role="radiogroup"
-      aria-label="Choose your character"
-    >
-      {AVATARS.map((entry) => (
-        <div key={entry.id} className="flex flex-col items-center gap-1.5">
-          <AvatarCard
-            avatarId={entry.id}
-            size="lg"
-            selected={value === entry.id}
-            onClick={() => onChange(entry.id)}
-          />
-          <span
-            className="text-[10px] font-semibold text-center leading-tight"
-            style={{ color: entry.accent }}
+    <div role="radiogroup" aria-label="Choose your character" className="flex flex-col gap-3">
+      {AVATAR_GROUPS.map((group) => (
+        <section
+          key={group.id}
+          aria-label={group.label}
+          className="rounded-[22px] border-[3px] p-[13px]"
+          style={{ backgroundColor: 'var(--theme-card)', borderColor: 'var(--theme-line)' }}
+        >
+          <p
+            className="text-[11px] font-extrabold uppercase tracking-[.09em] mb-2"
+            style={{ color: 'var(--theme-ink)', opacity: 0.55 }}
           >
-            {entry.name.split(' ').map((word, i) => (
-              <span key={i} className="block">{word}</span>
+            {group.label}
+          </p>
+          <div className="grid grid-cols-5 gap-[9px] justify-items-center">
+            {group.avatars.map((id) => (
+              <button
+                key={id}
+                type="button"
+                role="radio"
+                aria-checked={value === id}
+                aria-label={`Character ${id}`}
+                onClick={() => onChange(id)}
+                className={reducedMotion ? '' : 'active:scale-[.88]'}
+                style={{ transition: 'transform .16s cubic-bezier(.22,1,.36,1)' }}
+              >
+                <Avatar id={id} size={56} selected={value === id} />
+              </button>
             ))}
-          </span>
-        </div>
+          </div>
+        </section>
       ))}
     </div>
   );

@@ -21,8 +21,8 @@ export function TabBar() {
       className="fixed bottom-6 left-0 w-full px-4 z-50 flex justify-center xl:hidden"
     >
       <div
-        className="bg-white rounded-[2.5rem] border-[3px] flex justify-between items-center px-3 py-2 w-full max-w-sm shadow-2xl"
-        style={{ borderColor: 'var(--theme-border)' }}
+        className="rounded-[2.5rem] border-[3px] flex justify-between items-center px-3 py-2 w-full max-w-sm shadow-2xl"
+        style={{ backgroundColor: 'var(--theme-card)', borderColor: 'var(--theme-line)' }}
       >
         {tabs.map((tab) => {
           const isActive = pathname === tab.href;
@@ -33,16 +33,16 @@ export function TabBar() {
               href={tab.href}
               aria-current={isActive ? 'page' : undefined}
               className={`min-h-[44px] min-w-[44px] flex flex-col items-center justify-center gap-0.5 px-3 py-2 rounded-[1.25rem] text-xs font-bold transition-all duration-150 active:scale-[0.95] ${
-                isActive ? 'border-[3px]' : 'text-slate-400'
+                isActive ? 'border-[3px]' : ''
               }`}
               style={
                 isActive
                   ? {
-                      backgroundColor: 'var(--theme-card-bg)',
-                      borderColor: 'var(--theme-border)',
-                      color: 'var(--theme-text)',
+                      backgroundColor: 'var(--theme-tint)',
+                      borderColor: 'var(--theme-line)',
+                      color: 'var(--theme-ink)',
                     }
-                  : {}
+                  : { color: 'var(--theme-muted)' }
               }
             >
               <Icon size={22} aria-hidden="true" />

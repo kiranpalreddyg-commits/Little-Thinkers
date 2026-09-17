@@ -4,16 +4,15 @@ import { useState } from 'react';
 import { useAuth } from '@/hooks/useAuth';
 import { useChildProfiles } from '@/hooks/useAuth';
 import { ChildProfile } from '@/lib/types/auth';
-import { AvatarCard } from '@/components/avatars/AvatarCard';
-import { AVATARS } from '@/components/avatars';
-import type { AvatarId } from '@/lib/stores/themeStore';
+import { Avatar } from '@/components/avatars';
+import { ALL_AVATARS, type AvatarId } from '@/lib/avatars/manifest';
 
 function avatarIdForProfile(profileId: string): AvatarId {
   let hash = 0;
   for (let i = 0; i < profileId.length; i++) {
     hash = (hash * 31 + profileId.charCodeAt(i)) & 0xffffffff;
   }
-  return AVATARS[Math.abs(hash) % AVATARS.length].id as AvatarId;
+  return ALL_AVATARS[Math.abs(hash) % ALL_AVATARS.length];
 }
 
 interface ProfileSelectorProps {
@@ -89,16 +88,16 @@ export const ProfileSelector: React.FC<ProfileSelectorProps> = ({ onProfileSelec
             className="relative p-6 border-[3px] rounded-[1.5rem] transition-all duration-200 focus:outline-none bg-white"
             style={
               selectedProfile?.id === profile.id
-                ? { borderColor: 'var(--theme-border)', boxShadow: '0 6px 0 var(--theme-shadow)' }
+                ? { borderColor: 'var(--theme-line)', boxShadow: '0 6px 0 var(--theme-shadow)' }
                 : { borderColor: '#E5E7EB', boxShadow: '0 3px 0 #D1D5DB' }
             }
           >
             <div className="flex flex-col items-center text-center">
               {/* Avatar */}
               <div className="mb-4">
-                <AvatarCard
-                  avatarId={avatarIdForProfile(profile.id)}
-                  size="md"
+                <Avatar
+                  id={avatarIdForProfile(profile.id)}
+                  size={80}
                   selected={selectedProfile?.id === profile.id}
                 />
               </div>
@@ -111,7 +110,7 @@ export const ProfileSelector: React.FC<ProfileSelectorProps> = ({ onProfileSelec
 
               {/* Game Mode Badge */}
               <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-black border-[2px]"
-                style={{ backgroundColor: 'var(--theme-card-bg)', borderColor: 'var(--theme-border)', color: 'var(--theme-text)' }}
+                style={{ backgroundColor: 'var(--theme-tint)', borderColor: 'var(--theme-line)', color: 'var(--theme-ink)' }}
               >
                 {profile.gameplay_mode === 'smart' ? 'Smart Mode' :
                  profile.gameplay_mode === 'chill' ? 'Chill Mode' : 'Challenge Mode'}
@@ -121,7 +120,7 @@ export const ProfileSelector: React.FC<ProfileSelectorProps> = ({ onProfileSelec
             {/* Selection Indicator */}
             {selectedProfile?.id === profile.id && (
               <div className="absolute top-2 right-2">
-                <svg className="w-6 h-6" style={{ color: 'var(--theme-border)' }} fill="currentColor" viewBox="0 0 20 20">
+                <svg className="w-6 h-6" style={{ color: 'var(--theme-accent)' }} fill="currentColor" viewBox="0 0 20 20">
                   <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
                 </svg>
               </div>
@@ -134,8 +133,8 @@ export const ProfileSelector: React.FC<ProfileSelectorProps> = ({ onProfileSelec
         <div className="mt-8 text-center">
           <button
             onClick={() => handleProfileSelect(selectedProfile)}
-            className="text-white px-8 py-3 rounded-[1.5rem] border-[3px] font-black text-lg transition-transform active:translate-y-[2px]"
-            style={{ backgroundColor: 'var(--theme-border)', borderColor: 'var(--theme-shadow)', boxShadow: '0 5px 0 var(--theme-shadow)' }}
+            className="px-8 py-3 rounded-[1.5rem] border-[3px] font-black text-lg transition-transform active:translate-y-[2px]"
+            style={{ backgroundColor: 'var(--theme-accent)', color: 'var(--theme-on-accent)', borderColor: 'var(--theme-line)', boxShadow: '0 5px 0 var(--theme-shadow)' }}
           >
             Continue as {selectedProfile.name}
           </button>

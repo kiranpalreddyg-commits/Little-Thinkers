@@ -25,10 +25,10 @@ test.describe('Settings - Accessibility Modes and Preferences (Story 1.7)', () =
     });
   });
 
-  // Test 1: /settings page loads with correct heading
+  // Test 1: /settings (the You screen) is headed by the child's name (design 4a)
   test('settings page loads with correct heading', async ({ page }) => {
     await page.goto('/settings');
-    const heading = page.getByRole('heading', { name: /Settings|Accessibility Settings/i });
+    const heading = page.getByRole('heading', { level: 1, name: 'Aiden' });
     await expect(heading).toBeVisible();
   });
 

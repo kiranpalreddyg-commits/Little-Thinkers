@@ -10,8 +10,7 @@
  * AC4  — Today's Challenge full-width card
  * AC5  — Game grid layout: 6 cards in 2×3 arrangement
  * AC6  — Streak display on home hero
- * AC7  — Explore & Learn section remains (Tell Me Why + Story Time)
- * AC8  — Home page uses warm gradient (not plain white background)
+ * AC8  — Home page ground is painted from the active theme (not plain white)
  */
 
 import { test, expect } from '@playwright/test';
@@ -177,52 +176,35 @@ test.describe('Story 7.3 — Home Screen Redesign', () => {
   });
 
   // ─────────────────────────────────────────────────────────────────────────
-  // AC7: Explore & Learn section remains
+  // AC8: Home page ground is painted from the active theme (design 4a)
   // ─────────────────────────────────────────────────────────────────────────
 
-  test('AC7a — "Tell Me Why" section heading is visible', async ({ page }) => {
-    await expect(page.getByRole('heading', { name: /tell me why/i })).toBeVisible();
+  test('AC8a — home page is painted with the theme ground, not plain white', async ({ page }) => {
+    await expect(page.locator('div.min-h-screen').first()).toBeVisible();
+    const { body, ground } = await page.evaluate(() => {
+      const probe = document.createElement('div');
+      probe.style.backgroundColor = 'var(--theme-ground)';
+      document.body.appendChild(probe);
+      const ground = getComputedStyle(probe).backgroundColor;
+      probe.remove();
+      return { body: getComputedStyle(document.body).backgroundColor, ground };
+    });
+    expect(body).not.toBe('rgb(255, 255, 255)');
+    expect(body).not.toBe('rgba(0, 0, 0, 0)');
+    expect(body).toBe(ground);
   });
 
-  test('AC7b — "Story Time" section heading is visible', async ({ page }) => {
-    await expect(page.getByRole('heading', { name: /story time/i })).toBeVisible();
-  });
-
-  // ─────────────────────────────────────────────────────────────────────────
-  // AC8: Home page uses warm gradient (not plain white background)
-  // ─────────────────────────────────────────────────────────────────────────
-
-  test('AC8a — home page root element does NOT have a plain white background', async ({ page }) => {
-    // The UX spec mandates "Warm amber sky" gradient: from-[#FFFBEB] via-[#FFF7ED] to-[#F0FDF4]
-    // We verify the root wrapper does NOT use a plain white or default background
-    const rootWrapper = page.locator('div.min-h-screen').first();
-    await expect(rootWrapper).toBeVisible();
-
-    const bgClass = await rootWrapper.getAttribute('class');
-    // Must NOT be a plain white background (bg-white with no gradient)
-    // Must contain gradient classes — bg-gradient-to-* is required
-    expect(bgClass).toMatch(/bg-gradient/);
-  });
-
-  test('AC8b — home page gradient uses warm amber/yellow tones per UX spec', async ({ page }) => {
-    // The spec mandates warm amber: from-[#FFFBEB] via-[#FFF7ED] to-[#F0FDF4]
-    // We test for the data attribute or class that signals the correct gradient
-    // The redesign must replace the current "from-yellow-50 to-orange-50" with
-    // the specified warm amber sky gradient using hex values
-    const rootWrapper = page.locator('div.min-h-screen').first();
-    const bgClass = await rootWrapper.getAttribute('class');
-
-    // Must contain the amber/warm gradient tokens from UX spec
-    // Accept: data-testid="home-gradient" OR class containing FFFBEB or from-amber or warm amber
-    const hasWarmGradient =
-      bgClass?.includes('from-[#FFFBEB]') ||
-      bgClass?.includes('from-amber') ||
-      bgClass?.includes('via-[#FFF7ED]');
-
-    // Alternatively accept a data attribute marking it as redesigned
-    const redesignedEl = page.locator('[data-testid="home-background"]');
-    const hasDataAttr = await redesignedEl.count() > 0;
-
-    expect(hasWarmGradient || hasDataAttr).toBe(true);
+  test('AC8b — switching theme repaints the home page ground', async ({ page }) => {
+    // The auth screens force their own theme; wait for the shell to re-apply the persisted one.
+    await expect(page.locator('html')).toHaveAttribute('data-theme', 'cocoa');
+    const before = await page.evaluate(() => getComputedStyle(document.body).backgroundColor);
+    await page.evaluate(() => {
+      // cocoa is the default, so switch to a light-ground theme
+      localStorage.setItem('lt_theme', JSON.stringify({ state: { theme: 'turmeric', avatar: 'g02' }, version: 2 }));
+    });
+    await page.reload();
+    await expect(page.locator('html')).toHaveAttribute('data-theme', 'turmeric');
+    const after = await page.evaluate(() => getComputedStyle(document.body).backgroundColor);
+    expect(after).not.toBe(before);
   });
 });

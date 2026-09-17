@@ -88,7 +88,7 @@ test.describe('Parent Settings (Story 2.4)', () => {
   // Auth guard
   test('unauthenticated user is redirected to /login', async ({ page }) => {
     await page.context().clearCookies();
-    await page.goto('/parent/settings');
+    await Promise.all([page.waitForURL(/\/login/), page.goto('/parent/settings').catch(() => {})]);
     await expect(page).toHaveURL(/\/login/);
   });
 });

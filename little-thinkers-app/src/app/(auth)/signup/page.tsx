@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import posthog from 'posthog-js';
@@ -18,10 +18,12 @@ export default function SignupPage() {
   const [agreedToCoppa, setAgreedToCoppa] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  // Set once this page starts a signup, so the effect below doesn't race the child-setup redirect.
+  const signingUp = useRef(false);
 
-  // Redirect if already authenticated
+  // Redirect if already authenticated on arrival
   useEffect(() => {
-    if (!authLoading && isAuthenticated) {
+    if (!authLoading && isAuthenticated && !signingUp.current) {
       router.push('/profile-select');
     }
   }, [isAuthenticated, authLoading, router]);
@@ -64,16 +66,15 @@ export default function SignupPage() {
     }
 
     setIsLoading(true);
+    signingUp.current = true;
 
     try {
       await signup(email.trim(), password);
       posthog.identify(email.trim(), { email: email.trim() });
       posthog.capture('user_signed_up', { email: email.trim() });
-      // Redirect to child setup step after successful signup
-      setTimeout(() => {
-        router.push('/signup/child-setup');
-      }, 500);
+      router.push('/signup/child-setup');
     } catch (err) {
+      signingUp.current = false;
       const message = authError || (err instanceof Error ? err.message : 'Signup failed. Please try again.');
       setError(message);
     } finally {

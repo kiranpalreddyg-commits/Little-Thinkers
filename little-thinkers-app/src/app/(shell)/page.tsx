@@ -6,8 +6,6 @@ import posthog from 'posthog-js';
 import { useAuth } from '@/hooks/useAuth';
 import { useContent } from '@/hooks/useContent';
 import { PuzzleOfTheDay } from '@/components/home/PuzzleOfTheDay';
-import { ContentSection } from '@/components/home/ContentSection';
-import { ContentFilterBar } from '@/components/home/ContentFilter';
 import { DailyChallengeCard } from '@/components/home/DailyChallengeCard';
 import { GameCard } from '@/components/home/GameCard';
 import { HeroSection } from '@/components/home/HeroSection';
@@ -30,16 +28,7 @@ export default function HomePage() {
   const { streak } = useProgressionStore();
   const streakDays = streak?.currentStreak ?? 0;
   const router = useRouter();
-  const {
-    dailyPuzzle,
-    stories,
-    scienceTopics,
-    filter,
-    isLoading: contentLoading,
-    error,
-    setFilter,
-    clearError,
-  } = useContent();
+  const { dailyPuzzle, isLoading: contentLoading, error, clearError } = useContent();
 
   useEffect(() => {
     if (!authLoading) {
@@ -63,7 +52,6 @@ export default function HomePage() {
           {[0, 1, 2, 3, 4].map((i) => (
             <div key={i} className="h-20 bg-white/20 rounded-2xl mb-3" />
           ))}
-          <div className="h-64 bg-white/15 rounded-[2rem] mt-6" />
         </div>
         <span className="sr-only">Loading…</span>
       </div>
@@ -75,11 +63,6 @@ export default function HomePage() {
       posthog.capture('daily_puzzle_started', { puzzle_type: dailyPuzzle.type });
       router.push(`/play/${dailyPuzzle.type}`);
     }
-  };
-
-  const handleContentItemSelect = (id: string) => {
-    posthog.capture('content_item_viewed', { content_id: id });
-    router.push(`/content/${id}`);
   };
 
   return (
@@ -129,54 +112,6 @@ export default function HomePage() {
             {GAMES.map((game) => (
               <GameCard key={game.href} {...game} />
             ))}
-          </div>
-        </section>
-
-        {/* Educational content sections */}
-        <section
-          aria-labelledby="content-heading"
-          className="bg-white rounded-[2rem] border-[3px] p-6"
-          style={{ borderColor: 'var(--theme-border)', boxShadow: '0 8px 0 var(--theme-shadow)' }}
-        >
-          <div className="flex flex-wrap items-center justify-between gap-4 mb-6">
-            <h2 id="content-heading" className="text-2xl font-bold" style={{ color: 'var(--theme-text)' }}>
-              Explore &amp; Learn
-            </h2>
-            <ContentFilterBar filter={filter} onFilterChange={setFilter} />
-          </div>
-
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-            {/* Tell Me Why */}
-            <ContentSection
-              heading="Tell Me Why?"
-              description="Fascinating science questions answered"
-              items={scienceTopics}
-              accentColor="bg-amber-500"
-              icon={
-                <svg className="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2}
-                    d="M8.228 9c.549-1.165 2.03-2 3.772-2 2.21 0 4 1.343 4 3 0 1.4-1.278 2.575-3.006 2.907-.542.104-.994.54-.994 1.093m0 3h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
-                  />
-                </svg>
-              }
-              onItemSelect={handleContentItemSelect}
-            />
-
-            {/* Story Time */}
-            <ContentSection
-              heading="Story Time"
-              description="Short stories with big ideas"
-              items={stories}
-              accentColor="bg-pink-500"
-              icon={
-                <svg className="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2}
-                    d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253"
-                  />
-                </svg>
-              }
-              onItemSelect={handleContentItemSelect}
-            />
           </div>
         </section>
       </main>

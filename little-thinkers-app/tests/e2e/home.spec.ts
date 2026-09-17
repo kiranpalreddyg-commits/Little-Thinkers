@@ -34,16 +34,6 @@ test.describe('Home page', () => {
     await expect(page.getByRole('button', { name: /Start today's puzzle/i })).toBeVisible();
   });
 
-  test('shows educational content sections', async ({ page }) => {
-    await expect(page.getByRole('heading', { name: /Tell Me Why/i })).toBeVisible();
-    await expect(page.getByRole('heading', { name: /Story Time/i })).toBeVisible();
-  });
-
-  test('content filter controls are visible', async ({ page }) => {
-    await expect(page.getByRole('combobox', { name: 'Topic:' })).toBeVisible();
-    await expect(page.getByRole('combobox', { name: 'Age:' })).toBeVisible();
-  });
-
   test('clicking a game card navigates to the play page', async ({ page }) => {
     await page.getByRole('link', { name: /Play Word Pop/i }).click();
     await expect(page).toHaveURL(/\/play\/word-pop/);
@@ -63,20 +53,7 @@ test.describe('Home page', () => {
     // Clear session
     await page.context().clearCookies();
     await page.evaluate(() => localStorage.clear());
-    await page.goto('/');
-    await expect(page).toHaveURL(/\/login/, { timeout: 5000 });
-  });
-
-  test('applying a topic filter shows the clear filters button (AC4 visual indicator)', async ({ page }) => {
-    const topicSelect = page.getByRole('combobox', { name: 'Topic:' });
-    await expect(topicSelect).toBeVisible();
-    await topicSelect.selectOption('vocabulary');
-    await expect(page.getByRole('button', { name: /Clear all filters/i })).toBeVisible();
-  });
-
-  test('clearing the topic filter hides the clear button', async ({ page }) => {
-    await page.getByRole('combobox', { name: 'Topic:' }).selectOption('vocabulary');
-    await page.getByRole('button', { name: /Clear all filters/i }).click();
-    await expect(page.getByRole('button', { name: /Clear all filters/i })).not.toBeVisible();
+    await Promise.all([page.waitForURL(/\/login/), page.goto('/').catch(() => {})]);
+    await expect(page).toHaveURL(/\/login/);
   });
 });
