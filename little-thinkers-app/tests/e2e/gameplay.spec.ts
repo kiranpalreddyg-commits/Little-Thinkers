@@ -192,12 +192,8 @@ test.describe('Gameplay - Pause, Resume, and Session Recovery (Story 1.4)', () =
       page.getByRole('heading', { name: /Game Paused/i }),
     ).toBeVisible();
 
-    // Tab to the Resume button (may need multiple tabs depending on focus order)
-    await page.keyboard.press('Tab');
-    // Get the currently focused element
-    const focusedElement = await page.evaluate(() => document.activeElement?.getAttribute('aria-label') || document.activeElement?.textContent);
-
-    // Click the Resume button with Enter (keyboard activation)
+    // Activate the Resume button from the keyboard (WebKit does not reach buttons via Tab)
+    await page.getByRole('button', { name: /^Resume/i }).focus();
     await page.keyboard.press('Enter');
 
     // Verify pause overlay is dismissed
@@ -219,8 +215,8 @@ test.describe('Gameplay - Pause, Resume, and Session Recovery (Story 1.4)', () =
       page.getByRole('heading', { name: /Resume Game\?/i }),
     ).toBeVisible();
 
-    // Tab to and activate Resume Game button with keyboard
-    await page.keyboard.press('Tab');
+    // Activate Resume Game from the keyboard
+    await page.getByRole('button', { name: 'Resume Game' }).focus();
     await page.keyboard.press('Enter');
 
     // Should navigate to gameplay page
@@ -234,8 +230,8 @@ test.describe('Gameplay - Pause, Resume, and Session Recovery (Story 1.4)', () =
   }) => {
     await page.context().clearCookies();
     await page.evaluate(() => localStorage.clear());
-    await page.goto('/play/word-pop/play?difficulty=medium');
-    await expect(page).toHaveURL(/\/login/, { timeout: 5000 });
+    await Promise.all([page.waitForURL(/\/login/), page.goto('/play/word-pop/play?difficulty=medium').catch(() => {})]);
+    await expect(page).toHaveURL(/\/login/);
   });
 
   // AC5: Quit button from pause overlay returns user to home (full flow)

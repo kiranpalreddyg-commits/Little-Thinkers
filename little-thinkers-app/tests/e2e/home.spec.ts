@@ -53,7 +53,7 @@ test.describe('Home page', () => {
     // Clear session
     await page.context().clearCookies();
     await page.evaluate(() => localStorage.clear());
-    await page.goto('/');
-    await expect(page).toHaveURL(/\/login/, { timeout: 5000 });
+    await Promise.all([page.waitForURL(/\/login/), page.goto('/').catch(() => {})]);
+    await expect(page).toHaveURL(/\/login/);
   });
 });

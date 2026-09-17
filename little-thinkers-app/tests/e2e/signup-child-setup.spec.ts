@@ -107,8 +107,8 @@ test.describe('Consent Management (Story 2.1 AC3)', () => {
 
   test('AC3: /parent/consent shows each child with consent status', async ({ page }) => {
     await page.goto('/parent/consent');
-    await expect(page.getByText(/aiden/i)).toBeVisible();
-    await expect(page.getByText(/maya/i)).toBeVisible();
+    await expect(page.getByText('Aiden', { exact: true })).toBeVisible();
+    await expect(page.getByText('Maya', { exact: true })).toBeVisible();
   });
 
   test('AC3: parent can withdraw consent for a child', async ({ page }) => {
@@ -119,7 +119,8 @@ test.describe('Consent Management (Story 2.1 AC3)', () => {
 
   test('AC3: parent can grant consent for a child', async ({ page }) => {
     await page.goto('/parent/consent');
-    // Maya starts with consent not granted — grant it
+    // The fixture has Maya consented; withdraw, then re-grant
+    await page.getByRole('button', { name: /withdraw.*maya/i }).click();
     await page.getByRole('button', { name: /grant.*maya/i }).click();
     // After granting, Maya's row should show "granted"
     const mayaRow = page.locator('[data-child-id="child-2"]');

@@ -57,7 +57,7 @@ test.describe('Parent Quick View Dashboard (Story 2.2)', () => {
 
   test('unauthenticated user is redirected to /login', async ({ page }) => {
     await page.context().clearCookies();
-    await page.goto('/parent/dashboard');
+    await Promise.all([page.waitForURL(/\/login/), page.goto('/parent/dashboard').catch(() => {})]);
     await expect(page).toHaveURL(/\/login/);
   });
 });

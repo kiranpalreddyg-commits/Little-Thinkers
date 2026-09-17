@@ -78,7 +78,7 @@ test.describe('Parent Full View Dashboard (Story 2.3)', () => {
 
   test('unauthenticated user is redirected to /login', async ({ page }) => {
     await page.context().clearCookies();
-    await page.goto('/parent/full-view?child=child-1');
+    await Promise.all([page.waitForURL(/\/login/), page.goto('/parent/full-view?child=child-1').catch(() => {})]);
     await expect(page).toHaveURL(/\/login/);
   });
 });

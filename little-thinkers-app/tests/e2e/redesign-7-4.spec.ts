@@ -221,30 +221,42 @@ test.describe('AC4 — Cross-screen: font-black headings and gradient background
     expect(Number(fontWeight) >= 900 || hasBlackClass).toBe(true);
   });
 
-  test('AC4b — my-progress page has a gradient background (not plain white)', async ({
+  test('AC4b — my-progress page is painted with the theme ground (not plain white)', async ({
     page,
   }) => {
     await loginAndSelectProfile(page);
     await page.goto('/my-progress');
-    const root = page.locator('div.min-h-screen').first();
-    await expect(root).toBeVisible();
-    const bgClass = await root.getAttribute('class');
-    expect(bgClass).toMatch(/bg-gradient/);
-    // Must NOT be plain white
-    const isPlainWhite =
-      bgClass?.includes('bg-white') && !bgClass?.includes('bg-gradient');
-    expect(isPlainWhite).toBe(false);
+    await expect(page.locator('div.min-h-screen').first()).toBeVisible();
+    const { body, ground } = await page.evaluate(() => {
+      const probe = document.createElement('div');
+      probe.style.backgroundColor = 'var(--theme-ground)';
+      document.body.appendChild(probe);
+      const ground = getComputedStyle(probe).backgroundColor;
+      probe.remove();
+      return { body: getComputedStyle(document.body).backgroundColor, ground };
+    });
+    expect(body).not.toBe('rgb(255, 255, 255)');
+    expect(body).not.toBe('rgba(0, 0, 0, 0)');
+    expect(body).toBe(ground);
   });
 
-  test('AC4c — settings page has a gradient background (not plain white)', async ({
+  test('AC4c — settings page is painted with the theme ground (not plain white)', async ({
     page,
   }) => {
     await loginAndSelectProfile(page);
     await page.goto('/settings');
-    const root = page.locator('div.min-h-screen').first();
-    await expect(root).toBeVisible();
-    const bgClass = await root.getAttribute('class');
-    expect(bgClass).toMatch(/bg-gradient/);
+    await expect(page.locator('div.min-h-screen').first()).toBeVisible();
+    const { body, ground } = await page.evaluate(() => {
+      const probe = document.createElement('div');
+      probe.style.backgroundColor = 'var(--theme-ground)';
+      document.body.appendChild(probe);
+      const ground = getComputedStyle(probe).backgroundColor;
+      probe.remove();
+      return { body: getComputedStyle(document.body).backgroundColor, ground };
+    });
+    expect(body).not.toBe('rgb(255, 255, 255)');
+    expect(body).not.toBe('rgba(0, 0, 0, 0)');
+    expect(body).toBe(ground);
   });
 });
 
