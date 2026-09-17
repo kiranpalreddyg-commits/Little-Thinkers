@@ -13,6 +13,10 @@ interface AuthStore extends AuthState {
   initialize: () => void;
 }
 
+// Secure cookies are dropped by WebKit over plain http (e.g. a production build served on
+// localhost), so key the flag off the actual protocol rather than NODE_ENV.
+const isHttps = () => typeof window !== 'undefined' && window.location.protocol === 'https:';
+
 const TOKEN_STORAGE_KEY = 'little-thinkers-tokens';
 const USER_STORAGE_KEY = 'little-thinkers-user';
 const CHILD_STORAGE_KEY = 'little-thinkers-child';
@@ -34,13 +38,13 @@ export const useAuthStore = create<AuthStore>((set, get) => ({
     // Store tokens securely
     Cookies.set('access_token', access_token, {
       expires: 1/24, // 1 hour
-      secure: process.env.NODE_ENV === 'production',
+      secure: isHttps(),
       sameSite: 'strict'
     });
 
     Cookies.set('refresh_token', refresh_token, {
       expires: 7, // 7 days
-      secure: process.env.NODE_ENV === 'production',
+      secure: isHttps(),
       sameSite: 'strict',
       httpOnly: false // js-cookie can't set httpOnly, but we'll use it for refresh
     });
@@ -49,7 +53,7 @@ export const useAuthStore = create<AuthStore>((set, get) => ({
     localStorage.setItem(USER_STORAGE_KEY, JSON.stringify(user));
 
     // Set a simple presence cookie readable by Next.js middleware (edge runtime)
-    document.cookie = `lt_auth=1; path=/; max-age=86400; SameSite=Lax${process.env.NODE_ENV === 'production' ? '; Secure' : ''}`;
+    document.cookie = `lt_auth=1; path=/; max-age=86400; SameSite=Lax${isHttps() ? '; Secure' : ''}`;
 
     set({
       user,
@@ -88,13 +92,13 @@ export const useAuthStore = create<AuthStore>((set, get) => ({
   refreshTokens: (accessToken: string, refreshToken: string) => {
     Cookies.set('access_token', accessToken, {
       expires: 1/24,
-      secure: process.env.NODE_ENV === 'production',
+      secure: isHttps(),
       sameSite: 'strict'
     });
 
     Cookies.set('refresh_token', refreshToken, {
       expires: 7,
-      secure: process.env.NODE_ENV === 'production',
+      secure: isHttps(),
       sameSite: 'strict'
     });
 
@@ -125,7 +129,7 @@ export const useAuthStore = create<AuthStore>((set, get) => ({
         const childProfile = childData ? JSON.parse(childData) : null;
 
         // Re-mint the middleware presence cookie so it stays in sync with access_token
-        document.cookie = `lt_auth=1; path=/; max-age=86400; SameSite=Lax${process.env.NODE_ENV === 'production' ? '; Secure' : ''}`;
+        document.cookie = `lt_auth=1; path=/; max-age=86400; SameSite=Lax${isHttps() ? '; Secure' : ''}`;
 
         set({
           user,

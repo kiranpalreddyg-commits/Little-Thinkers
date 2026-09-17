@@ -64,6 +64,7 @@ export function AppHeader({ sparkCount = 0 }: AppHeaderProps) {
               >
                 {sparkCount}
               </span>
+              <span className="sr-only"> Sparks</span>
             </div>
 
             <button
@@ -92,6 +93,7 @@ export function AppHeader({ sparkCount = 0 }: AppHeaderProps) {
             <button
               type="button"
               onClick={() => { logout(); router.push('/login'); }}
+              aria-label="Sign Out"
               style={{ color: 'var(--theme-muted)' }}
               className="text-xs hover:opacity-70 transition-opacity px-2 py-1 rounded focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--color-brand)]"
             >

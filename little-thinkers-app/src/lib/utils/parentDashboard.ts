@@ -1,5 +1,5 @@
 import type { Badge, WorldMapArea } from '@/lib/types/progression';
-import { GAME_TYPES } from '@/lib/types/progression';
+import { GAME_TYPES, WORLD_AREAS } from '@/lib/types/progression';
 
 export interface ChildWeeklySummary {
   childId: string;
@@ -164,7 +164,8 @@ export function readChildSummary(childId: string): ChildWeeklySummary {
 
 export function readChildDetailedView(childId: string, childName: string): ChildDetailedView {
   let badges: Badge[] = [];
-  let worldAreas: WorldMapArea[] = [];
+  // A child who has never played still has the map, with only the first area unlocked.
+  let worldAreas: WorldMapArea[] = WORLD_AREAS;
   let currentStreak = 0;
   let longestStreak = 0;
   let lastActivityDate: string | null = null;

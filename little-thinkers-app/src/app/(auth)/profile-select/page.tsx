@@ -31,10 +31,8 @@ export default function ProfileSelectPage() {
       child_age: profile.age,
       gameplay_mode: profile.gameplay_mode,
     });
-    // Navigate to home after a brief delay to show selection feedback
-    setTimeout(() => {
-      router.push('/');
-    }, 500);
+    // The effect above navigates to '/' as soon as childProfile is set; pushing here
+    // too produced a second navigation that interrupted the next page load on WebKit.
   };
 
   if (isLoading) {
